@@ -138,7 +138,7 @@ function makePlayer(){
 }
 const player=makePlayer();player.position.set(2,0,12);
 let inCar=false,keys={},cash=0,deliveries=0,missionIndex=0,toastTimer=0;
-const jobs=[new THREE.Vector3(45,0,45),new THREE.Vector3(-75,0,15),new THREE.Vector3(-45,0,-75),new THREE.Vector3(75,0,-75),new THREE.Vector3(105,0,45)];
+const jobs=[new THREE.Vector3(60,0,60),new THREE.Vector3(-90,0,30),new THREE.Vector3(-60,0,-90),new THREE.Vector3(90,0,-90),new THREE.Vector3(120,0,60)];
 const marker=new THREE.Group();scene.add(marker);
 const ring=new THREE.Mesh(new THREE.TorusGeometry(2, .18, 8, 28),mats.glow);ring.rotation.x=Math.PI/2;ring.position.y=.22;marker.add(ring);
 const beam=new THREE.Mesh(new THREE.CylinderGeometry(.08,.6,3,12,1,true),new THREE.MeshBasicMaterial({color:0xc7ff6b,transparent:true,opacity:.22,side:THREE.DoubleSide}));beam.position.y=1.8;marker.add(beam);
