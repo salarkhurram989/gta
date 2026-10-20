@@ -4,7 +4,7 @@ plugins {
 
 android {
     namespace 'com.salarx.opencity3d'
-    compileSdk 34
+    compileSdk 33
     defaultConfig {
         applicationId 'com.salarx.opencity3d'
         minSdk 15
