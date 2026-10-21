@@ -161,7 +161,7 @@ function makeInterior(record,index){
  record.interior=room;record.interiorWidth=w;record.interiorDepth=d;
 }
 shops.forEach((shop,i)=>makeInterior(shop,i));
-explorableBuildings.slice(0,12).forEach((building,i)=>makeInterior(building,i+shops.length));
+explorableBuildings.forEach((building,i)=>makeInterior(building,i+shops.length));
 // Small trees and street lamps on sidewalks
 for(let i=0;i<95;i++){
  const x=(rand()-.5)*270,z=(rand()-.5)*270;
@@ -253,7 +253,7 @@ function makePlayer(){
 const player=makePlayer();player.position.set(2,0,12);
 
 let inCar=false,keys={},cash=0,deliveries=0,missionIndex=0,toastTimer=0;
-let inventory={meals:0,outfits:0,paint:0,arcadeTokens:0},activePanel=null;
+let inventory={meals:0,outfits:0,paint:0,arcadeTokens:0},activePanel=null,currentInterior=null;
 const SAVE_KEY='salarx-open-city-save-v1';
 function saveGame(){try{localStorage.setItem(SAVE_KEY,JSON.stringify({version:1,cash:cash,deliveries:deliveries,missionIndex:missionIndex,inventory:inventory}));}catch(e){showToast('SAVE UNAVAILABLE');}}
 function loadGame(){
@@ -284,13 +284,15 @@ const catalog={
  'AUTO SHOP':[{id:'paint',name:'Custom car paint',price:200}]
 };
 function closePanels(){activePanel=null;document.getElementById('shopPanel').style.display='none';document.getElementById('dialoguePanel').style.display='none';}
+function enterInterior(record){if(!record.interior){showToast('THIS BUILDING IS CLOSED');return;}if(inCar)return;closePanels();currentInterior=record;record.exterior.visible=false;record.interior.visible=true;record.exitX=player.position.x;record.exitZ=player.position.z;player.position.set(record.x,0,record.z);player.rotation.y=0;showToast(record.kind==='BUILDING'?'ENTERED BUILDING':'ENTERED '+record.kind);document.getElementById('mode').textContent='ON FOOT • INDOORS';document.getElementById('prompt').innerHTML='Explore interior <span class="key">W A S D</span> · Exit <span class="key">E</span>';}
+function exitInterior(){if(!currentInterior)return;const room=currentInterior;room.interior.visible=false;room.exterior.visible=true;currentInterior=null;player.position.set(room.doorX+Math.sign(room.doorX-room.x)*.7,0,room.doorZ+Math.sign(room.doorZ-room.z)*.7);if(Math.hypot(player.position.x-room.x,player.position.z-room.z)<1){player.position.set(room.x,0,room.z+(room.d?room.d/2+2:7));}document.getElementById('mode').textContent='ON FOOT';document.getElementById('prompt').innerHTML='Move <span class="key">W A S D</span> · Sprint <span class="key">SHIFT</span> · Enter car <span class="key">E</span>';showToast('EXITED BUILDING');}
 function openShop(shop){activePanel='shop';document.getElementById('dialoguePanel').style.display='none';document.getElementById('shopPanel').style.display='block';document.getElementById('shopTitle').textContent=shop.kind;document.getElementById('shopDescription').textContent=shop.description+' Cash: $'+cash.toLocaleString();const box=document.getElementById('shopOptions');box.innerHTML='';catalog[shop.kind].forEach(item=>{const b=document.createElement('button');b.textContent=item.name+' — $'+item.price;b.addEventListener('click',()=>buyItem(item));box.appendChild(b);});}
 function buyItem(item){if(cash<item.price){showToast('NOT ENOUGH CASH');return;}cash-=item.price;if(item.id==='tokens'){inventory.arcadeTokens+=5;showToast('5 ARCADE TOKENS ADDED');}else if(item.id==='meal'){inventory.meals++;showToast('MEAL PURCHASED');}else if(item.id==='outfit'){inventory.outfits++;showToast('NEW OUTFIT PURCHASED');}else if(item.id==='paint'){inventory.paint++;carPaint();showToast('CAR PAINT UPDATED');}document.getElementById('cash').textContent='$'+cash.toLocaleString();saveGame();openShop(shops.find(sh=>sh.kind===document.getElementById('shopTitle').textContent)||shops[0]);}
 function carPaint(){const colors=[0x19b7d4,0xd94f4f,0xf0bd45,0x64b57b,0x8e79c5,0xf1eee5];const color=colors[inventory.paint%colors.length];car.traverse(o=>{if(o.isMesh&&(o.material===mats.car||o.userData.paintable)){o.userData.paintable=true;o.material=mat(color,.28,.35);}});}
-function interact(){if(activePanel){closePanels();return;}if(inCar){showToast('EXIT THE CAR TO INTERACT');return;}const p=player.position;let nearestShop=null,shopDist=1e9;shops.forEach(sh=>{const d=Math.hypot(p.x-sh.x,p.z-sh.z);if(d<shopDist){shopDist=d;nearestShop=sh;}});if(nearestShop&&shopDist<8){openShop(nearestShop);return;}let nearestNpc=null,npcDist=1e9;pedestrians.forEach(npc=>{const d=p.distanceTo(npc.group.position);if(d<npcDist){npcDist=d;nearestNpc=npc;}});if(nearestNpc&&npcDist<3.5){activePanel='dialogue';document.getElementById('shopPanel').style.display='none';document.getElementById('dialoguePanel').style.display='block';document.getElementById('dialogueName').textContent=nearestNpc.name+' · LOCAL';document.getElementById('dialogueText').textContent=nearestNpc.dialogue;}else showToast('NO ONE NEARBY · WALK TO A SHOP OR NPC');}
+function interact(){if(activePanel){closePanels();return;}if(currentInterior){if(catalog[currentInterior.kind])openShop(currentInterior);else showToast('LOOK AROUND · PRESS E TO EXIT');return;}if(inCar){showToast('EXIT THE CAR TO INTERACT');return;}const p=player.position;let nearestShop=null,shopDist=1e9;shops.forEach(sh=>{const d=Math.hypot(p.x-sh.doorX,p.z-sh.doorZ);if(d<shopDist){shopDist=d;nearestShop=sh;}});if(nearestShop&&shopDist<3.8){enterInterior(nearestShop);return;}let nearestBuilding=null,buildingDist=1e9;explorableBuildings.forEach(b=>{const d=Math.hypot(p.x-b.doorX,p.z-b.doorZ);if(d<buildingDist){buildingDist=d;nearestBuilding=b;}});if(nearestBuilding&&buildingDist<3.8){enterInterior(nearestBuilding);return;}let nearestNpc=null,npcDist=1e9;pedestrians.forEach(npc=>{const d=p.distanceTo(npc.group.position);if(d<npcDist){npcDist=d;nearestNpc=npc;}});if(nearestNpc&&npcDist<3.5){activePanel='dialogue';document.getElementById('shopPanel').style.display='none';document.getElementById('dialoguePanel').style.display='block';document.getElementById('dialogueName').textContent=nearestNpc.name+' · LOCAL';document.getElementById('dialogueText').textContent=nearestNpc.dialogue;}else showToast('FIND A DOOR OR A PERSON NEARBY');}
 
 const keyMap={'ArrowUp':'w','ArrowDown':'s','ArrowLeft':'a','ArrowRight':'d','Shift':'shift',' ':' '};
-addEventListener('keydown',e=>{const k=keyMap[e.key]||e.key.toLowerCase();keys[k]=true;if([' ','arrowup','arrowdown','arrowleft','arrowright'].includes(e.key.toLowerCase()))e.preventDefault();if(k==='e'&&!e.repeat)toggleCar();if(k==='f'&&!e.repeat)interact();if(k==='escape'&&!e.repeat)closePanels();if(k==='p'&&!e.repeat&&started){paused=!paused;keys={};showToast(paused?'PAUSED · PRESS P TO RESUME':'RESUMED');}});
+addEventListener('keydown',e=>{const k=keyMap[e.key]||e.key.toLowerCase();keys[k]=true;if([' ','arrowup','arrowdown','arrowleft','arrowright'].includes(e.key.toLowerCase()))e.preventDefault();if(k==='e'&&!e.repeat){if(currentInterior)exitInterior();else toggleCar();}if(k==='f'&&!e.repeat)interact();if(k==='escape'&&!e.repeat)closePanels();if(k==='p'&&!e.repeat&&started){paused=!paused;keys={};showToast(paused?'PAUSED · PRESS P TO RESUME':'RESUMED');}});
 addEventListener('keyup',e=>{const k=keyMap[e.key]||e.key.toLowerCase();keys[k]=false;});
 document.querySelectorAll('[data-key]').forEach(b=>{
  const k=b.dataset.key;const down=e=>{e.preventDefault();keys[k]=true;b.classList.add('down');if(k==='e')toggleCar();};const up=e=>{e.preventDefault();keys[k]=false;b.classList.remove('down');};
@@ -300,6 +302,7 @@ document.getElementById('interactBtn').addEventListener('click',interact);
 document.getElementById('closeShop').addEventListener('click',closePanels);
 function toggleCar(){
  if(!started)return;
+ if(currentInterior){exitInterior();return;}
  if(inCar){inCar=false;player.visible=true;player.position.set(car.position.x+Math.sin(car.rotation.y)*2.1,0,car.position.z+Math.cos(car.rotation.y)*2.1);showToast('EXITED VEHICLE');}
  else if(player.position.distanceTo(car.position)<4.4){inCar=true;player.visible=false;showToast('VEHICLE ENTERED');}
  else showToast('MOVE CLOSER TO THE CAR');
@@ -360,7 +363,7 @@ function animate(){
    player.position.copy(car.position);
   }else{
    const moving=keys.w||keys.s||keys.a||keys.d;const pace=keys.shift?10:5.2;
-   if(moving){const dir=new THREE.Vector3((keys.d?1:0)-(keys.a?1:0),0,(keys.s?1:0)-(keys.w?1:0)).normalize();player.position.x+=dir.x*pace*dt;player.position.z+=dir.z*pace*dt;player.rotation.y=Math.atan2(dir.x,dir.z);player.position.x=THREE.MathUtils.clamp(player.position.x,-220,220);player.position.z=THREE.MathUtils.clamp(player.position.z,-220,220);if(blocked(player.position.x,player.position.z,.6)){player.position.x-=dir.x*pace*dt;player.position.z-=dir.z*pace*dt;}}
+   if(moving){const dir=new THREE.Vector3((keys.d?1:0)-(keys.a?1:0),0,(keys.s?1:0)-(keys.w?1:0)).normalize();player.position.x+=dir.x*pace*dt;player.position.z+=dir.z*pace*dt;player.rotation.y=Math.atan2(dir.x,dir.z);player.position.x=THREE.MathUtils.clamp(player.position.x,-220,220);player.position.z=THREE.MathUtils.clamp(player.position.z,-220,220);if(!currentInterior&&blocked(player.position.x,player.position.z,.6)){player.position.x-=dir.x*pace*dt;player.position.z-=dir.z*pace*dt;}}
    speed=0;
   }
   const actor=inCar?car:player;
@@ -383,7 +386,7 @@ function animate(){
 }
 camera.position.set(0,8,22);camera.lookAt(0,0,0);animate();
 window.__openCityReady=true;
-addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio,1.7));});
+addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio,1.45));});
 </script>
 </body>
 </html>
