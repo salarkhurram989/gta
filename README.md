@@ -29,6 +29,18 @@ The browser version loads Three.js from jsDelivr, so an internet connection is r
 - Save/load restores cash, deliveries, mission progress, shop inventory, collected caches, player position and vehicle position
 - Existing version-1 local saves are migrated by loading them into the expanded save format
 
+
+### Customization
+
+- Open the **✦ CUSTOMIZE** panel during gameplay.
+- Choose from 8 vehicle paint colours and 7 player outfit colours.
+- Adjust third-person camera distance.
+- Select Low, Medium or High graphics settings. Low mode reduces pixel density, disables shadows and hides half of the ambient pedestrians and traffic for smoother play.
+- Choose dynamic day/night, permanent daytime or permanent nighttime.
+- Customization choices are saved locally in the browser, separately from the main game save.
+
+These options have passed a JavaScript syntax check; they have not yet been verified in a live browser or on physical hardware.
+
 ## Controls
 
 - **WASD / Arrow keys** — move or drive
