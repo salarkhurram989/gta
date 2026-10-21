@@ -12,7 +12,8 @@ The browser version loads Three.js from jsDelivr, so an internet connection is r
 
 ## Current prototype features
 
-- Procedural 3D city blocks with enhanced facade details, rooftop equipment, ACES tone mapping, updated lighting and depth fog
+- Procedural 3D city blocks with enhanced facade details, rooftop equipment, ACES tone mapping, updated lighting, depth fog and a gradual day-night cycle
+- Glowing hidden city caches worth $75 each, marked on the minimap and saved when collected
 - Select buildings have doors and walkable furnished interiors; shop interiors are enterable too
 - Roads, sidewalks, trees and street markings
 - Third-person player movement and sprinting
@@ -24,7 +25,7 @@ The browser version loads Three.js from jsDelivr, so an internet connection is r
 - Courier destinations, cash rewards and delivery counter
 - Minimap, speed HUD and mobile touch controls
 - Keyboard pause/resume with **P**
-- Local progress saving after completed deliveries
+- Local progress saving for deliveries, cash, shop inventory and collected city caches
 
 ## Controls
 
