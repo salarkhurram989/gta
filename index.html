@@ -131,7 +131,7 @@ const car=makeCar();
 // --- Living city: pedestrians and ambient traffic ---
 const pedestrianMats=[mat(0x28b6a8),mat(0xf0b64c),mat(0xd86f8a),mat(0xe8e5d8),mat(0x526bd0),mat(0x9b6a45),mat(0x72a65a)];
 const pedestrians=[];
-function makePedestrian(x,z,phase){
+function makePedestrian(x,z,phase,axis){
  const g=new THREE.Group();
  const shirt=pedestrianMats[Math.floor(rand()*pedestrianMats.length)];
  const pants=mat([0x273747,0x3b3b45,0x655747,0x202a31][Math.floor(rand()*4)]);
@@ -144,7 +144,7 @@ function makePedestrian(x,z,phase){
   const leg=new THREE.Mesh(new THREE.BoxGeometry(.16,.48,.17),pants);leg.position.set(side*.13,.39,0);leg.castShadow=true;g.add(leg);legs.push(leg);
  }
  g.position.set(x,0,z);scene.add(g);
- return {group:g,phase:phase||rand()*6.28,pace:1.2+rand()*1.1,axis:rand()<.5?'x':'z',direction:rand()<.5?-1:1,legs};
+ return {group:g,phase:phase||rand()*6.28,pace:1.2+rand()*1.1,axis:axis||(rand()<.5?'x':'z'),direction:rand()<.5?-1:1,legs};
 }
 for(let i=0;i<34;i++){
  // Spawn on a consistent sidewalk lane, parallel to one road axis.
@@ -154,7 +154,7 @@ for(let i=0;i<34;i++){
  const axis=rand()<.5?'x':'z';
  const x=axis==='x'?along:lane*30+side*6.1;
  const z=axis==='x'?lane*30+side*6.1:along;
- if(!blocked(x,z,.8))pedestrians.push(makePedestrian(x,z,rand()*6.28));
+ if(!blocked(x,z,.8))pedestrians.push(makePedestrian(x,z,rand()*6.28,axis));
 }
 const traffic=[];
 function makeTrafficCar(color,x,z,axis,direction){
