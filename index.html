@@ -390,7 +390,9 @@ function animate(){
   const behind=inCar?10:7.5,up=inCar?5.3:4.4;
   const desired=new THREE.Vector3(actor.position.x-Math.sin(actor.rotation.y)*behind,up,actor.position.z-Math.cos(actor.rotation.y)*behind);
   camera.position.lerp(desired,1-Math.pow(.001,dt));camTarget.set(actor.position.x,actor.position.y+(inCar?1.2:1.3),actor.position.z);camera.lookAt(camTarget);
-  for(const cache of caches){if(cache.active&&actor.position.distanceTo(cache.group.position)<2.5){cache.active=false;cache.group.visible=false;cash+=75;document.getElementById('cash').textContent='
+  for(const cache of caches){if(cache.active&&actor.position.distanceTo(cache.group.position)<2.5){cache.active=false;cache.group.visible=false;cash+=75;document.getElementById('cash').textContent='$'+cash.toLocaleString();saveGame();showToast('CITY CACHE FOUND +$75');}}
+  const dist=actor.position.distanceTo(marker.position);
+  if(dist<3.2){
    cash+=250;deliveries++;missionIndex++;
    document.getElementById('cash').textContent='$'+cash.toLocaleString();
    document.getElementById('deliveries').textContent=deliveries;
