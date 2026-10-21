@@ -12,7 +12,9 @@ The browser version loads Three.js from jsDelivr, so an internet connection is r
 
 ## Current prototype features
 
-- Procedural 3D city blocks, buildings, roads, trees and street markings
+- Procedural 3D city blocks with enhanced facade details, rooftop equipment, ACES tone mapping, updated lighting and depth fog
+- Select buildings have doors and walkable furnished interiors; shop interiors are enterable too
+- Roads, sidewalks, trees and street markings
 - Third-person player movement and sprinting
 - Sports coupe with steering, acceleration, reverse and braking
 - 64 procedurally generated pedestrians with short individual conversations
@@ -28,7 +30,8 @@ The browser version loads Three.js from jsDelivr, so an internet connection is r
 
 - **WASD / Arrow keys** — move or drive
 - **Shift** — sprint while on foot
-- **E** — enter or exit the sports car (stand close to it)
+- **E** — enter/exit the sports car, or exit a building
+- **F** — enter a building/shop door; inside a shop, open its purchase menu
 - **Space** — brake while driving
 - **F** — talk to nearby pedestrians or open a nearby shop
 - **Esc** — close dialogue/shop panels
@@ -53,4 +56,4 @@ The Android WebView wrapper and GitHub Actions workflow are in `android/` and `.
 
 ## Known limitations
 
-This is an evolving prototype, not a full commercial-scale open-world game. Pedestrian and traffic behavior is lightweight and not yet equivalent to robust pathfinding or a complete traffic simulation. The mission loop currently focuses on courier deliveries. Shops, basic NPC conversations and arcade-token purchases are prototype systems; the ten-mission framework, vehicle garage, advanced police AI, audio and weather are future stages. Gameplay and physical-device compatibility still need testing. Features should be considered verified only after the tests in the QA checklist have actually been run.
+This is an evolving prototype, not a full commercial-scale open-world game. Pedestrian and traffic behavior is lightweight and not yet equivalent to robust pathfinding or a complete traffic simulation. The mission loop currently focuses on courier deliveries. Building interiors, shops, basic NPC conversations and arcade-token purchases are prototype systems; the ten-mission framework, vehicle garage, advanced police AI, audio and weather are future stages. Gameplay and physical-device compatibility still need testing. Features should be considered verified only after the tests in the QA checklist have actually been run.
