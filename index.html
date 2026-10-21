@@ -336,6 +336,7 @@ function drawMap(){
  ctx.fillStyle='#5c8060';for(let i=0;i<65;i++){const x=(i*71)%w,y=(i*113)%h;ctx.fillRect(x,y,5,5);}
  const p=inCar?car.position:player.position;const px=(p.x+160)/320*w,py=(p.z+160)/320*h;
  const j=jobs[missionIndex%jobs.length];ctx.fillStyle='#c7ff6b';ctx.beginPath();ctx.arc((j.x+160)/320*w,(j.z+160)/320*h,6,0,Math.PI*2);ctx.fill();
+ ctx.fillStyle='#f3b43f';for(const cache of caches){if(cache.active){ctx.beginPath();ctx.arc((cache.group.position.x+160)/320*w,(cache.group.position.z+160)/320*h,3.5,0,Math.PI*2);ctx.fill();}}
  ctx.fillStyle='#62e9ff';ctx.save();ctx.translate(px,py);ctx.rotate(inCar?car.rotation.y:player.rotation.y);ctx.beginPath();ctx.moveTo(0,-8);ctx.lineTo(5,6);ctx.lineTo(-5,6);ctx.closePath();ctx.fill();ctx.restore();
 }
 let mapTimer=0;
