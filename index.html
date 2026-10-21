@@ -33,7 +33,7 @@ button{font:inherit;cursor:pointer}#play{width:100%;padding:15px;background:var(
   <div class="start-card">
     <div class="kicker">SALARX STUDIOS • BROWSER GAME</div>
     <div class="logo">OPEN CITY<br><span>3D</span></div>
-    <p class="desc">Explore an original open-world city with 64 pedestrians, traffic, conversations, shops, spending, courier jobs and target practice.</p>
+    <p class="desc">Explore an original open-world city with 64 pedestrians, traffic, conversations, shops, spending, courier jobs and arcade activities.</p>
     <div class="features"><span class="pill">3D CITY</span><span class="pill">PEDESTRIANS</span><span class="pill">MOVING TRAFFIC</span><span class="pill">COURIER JOBS</span></div>
     <button id="play">ENTER THE CITY ↗</button>
     <div class="fine">Original open-city prototype with procedural characters and vehicles. Requires internet to load the 3D engine. Press P to pause/resume; progress saves locally after deliveries.</div>
@@ -44,7 +44,7 @@ button{font:inherit;cursor:pointer}#play{width:100%;padding:15px;background:var(
   <div id="mission" class="panel"><strong>ACTIVE JOB / 01</strong><p id="missionText">Find the glowing pickup marker.</p><div class="sub" id="missionSub">Deliver packages around the city to earn cash.</div></div>
   <div id="stats" class="panel"><div class="label">CASH BALANCE</div><div class="money" id="cash">$0</div><div class="label">DELIVERIES <span id="deliveries">0</span></div><div class="label" style="margin-top:5px;color:var(--cyan)">CITY LIFE · 64 NPCs / 8 CARS</div></div>
   <div id="mapWrap"><canvas id="map" width="280" height="280"></canvas></div>
-  <div id="prompt" class="panel">Move <span class="key">W A S D</span> · Sprint <span class="key">SHIFT</span> · Enter/exit car <span class="key">E</span> · Talk/shop <span class="key">F</span> · Equipment <span class="key">G</span> · Pause <span class="key">P</span></div>
+  <div id="prompt" class="panel">Move <span class="key">W A S D</span> · Sprint <span class="key">SHIFT</span> · Enter/exit car <span class="key">E</span> · Talk/shop <span class="key">F</span> · Pause <span class="key">P</span></div>
   <div id="speed"><div class="num"><span id="speedNum">0</span></div><div class="unit">KM/H</div></div>
   <div id="toast" class="panel"></div>
   <div id="dialoguePanel" class="panel"><strong id="dialogueName"></strong><p id="dialogueText"></p><div class="sub">Press F to talk · ESC to close</div></div>
@@ -115,7 +115,7 @@ function addShop(kind,x,z,color,description){
  shops.push({kind:kind,x:x+(x>0?-5.3:5.3),z:z+(z>0?-5.3:5.3),description:description});
  obstacles.push({x:x,z:z,rx:4.7,rz:4.2});
 }
-addShop('GUN STORE',-15,-15,0xc65a4a,'Buy fictional in-game weapons and try the practice targets.');
+addShop('ARCADE',-15,-15,0xc65a4a,'Spend cash on arcade tokens and local high-score challenges.');
 addShop('CAFE',15,-15,0xc79a4b,'Spend cash on a meal and a short break.');
 addShop('CLOTHING',-15,15,0x5b91b9,'Buy a fresh outfit for your character.');
 addShop('AUTO SHOP',15,15,0x5ba783,'Pay for a custom paint job for your car.');
@@ -148,7 +148,7 @@ const car=makeCar();
 // --- Living city: pedestrians and ambient traffic ---
 const pedestrianMats=[mat(0x28b6a8),mat(0xf0b64c),mat(0xd86f8a),mat(0xe8e5d8),mat(0x526bd0),mat(0x9b6a45),mat(0x72a65a)];
 const npcNames=['Maya','Leo','Ari','Zara','Noah','Ivy','Sam','Rafi','Nina','Omar','Kai','Mila','Alex','Hana','Jude','Amir'];
-const npcTalk=['The waterfront looks amazing at sunset.','I heard the cafe has fresh snacks today.','Keep your eyes open for courier jobs.','The auto shop can change your ride colour.','The city feels livelier every day.','I am just heading to the next block.','Try the shops downtown if you have some cash.','The road markings should make turns easier.','I wish there were more buses around here.','Have you tried the delivery challenge?','The gun store has a practice range for targets.','I am meeting a friend near the plaza.','This district is getting busier.','You can earn cash by finishing jobs.','Watch the intersections when driving.','I like the new clothes in the shop.'];
+const npcTalk=['The waterfront looks amazing at sunset.','I heard the cafe has fresh snacks today.','Keep your eyes open for courier jobs.','The auto shop can change your ride colour.','The city feels livelier every day.','I am just heading to the next block.','Try the shops downtown if you have some cash.','The road markings should make turns easier.','I wish there were more buses around here.','Have you tried the delivery challenge?','The arcade has a high-score challenge.','I am meeting a friend near the plaza.','This district is getting busier.','You can earn cash by finishing jobs.','Watch the intersections when driving.','I like the new clothes in the shop.'];
 const pedestrians=[];
 function makePedestrian(x,z,phase,axis){
  const g=new THREE.Group();
@@ -208,10 +208,9 @@ function makePlayer(){
  return g;
 }
 const player=makePlayer();player.position.set(2,0,12);
-const weaponProp=new THREE.Group();cube(weaponProp,mats.dark,0,0,0,.42,.16,.12,false);cube(weaponProp,mats.car,.12,.02,-.08,.2,.1,.25,false);weaponProp.position.set(.42,1.05,.25);weaponProp.visible=false;player.add(weaponProp);
-const targetDummies=[];for(let i=0;i<3;i++){const target=new THREE.Group();target.position.set(-6+i*6,0,48);cube(target,mat(0xd5c8a5),0,.9,0,.7,1.8,.22,false);cube(target,mat(0xc94d45),0,1.1,.13,.45,.45,.05,false);scene.add(target);targetDummies.push(target);}
+
 let inCar=false,keys={},cash=0,deliveries=0,missionIndex=0,toastTimer=0;
-let inventory={weapons:[],meals:0,outfits:0,paint:0},activePanel=null;
+let inventory={meals:0,outfits:0,paint:0,arcadeTokens:0},activePanel=null;
 const SAVE_KEY='salarx-open-city-save-v1';
 function saveGame(){try{localStorage.setItem(SAVE_KEY,JSON.stringify({version:1,cash:cash,deliveries:deliveries,missionIndex:missionIndex,inventory:inventory}));}catch(e){showToast('SAVE UNAVAILABLE');}}
 function loadGame(){
@@ -222,7 +221,7 @@ function loadGame(){
    cash=Math.max(0,Math.floor(Number(data.cash)||0));
    deliveries=Math.max(0,Math.floor(Number(data.deliveries)||0));
    missionIndex=Math.max(0,Math.floor(Number(data.missionIndex)||0));
-   inventory=data.inventory&&typeof data.inventory==='object'?data.inventory:{weapons:[],meals:0,outfits:0,paint:0};
+   inventory=data.inventory&&typeof data.inventory==='object'?data.inventory:{meals:0,outfits:0,paint:0,arcadeTokens:0};
    document.getElementById('cash').textContent='$'+cash.toLocaleString();
    document.getElementById('deliveries').textContent=deliveries;
   }
@@ -236,19 +235,19 @@ function setJob(){marker.position.copy(jobs[missionIndex%jobs.length]);document.
 setJob();
 function showToast(s){const t=document.getElementById('toast');t.textContent=s;t.style.opacity=1;toastTimer=2.3;}
 const catalog={
- 'GUN STORE':[{id:'sidearm',name:'Arc Sidearm · game item',price:300},{id:'smg',name:'Pulse SMG · game item',price:850},{id:'scatter',name:'Scatter Blaster · game item',price:1200}],
+ 'ARCADE':[{id:'tokens',name:'Buy an arcade token pack',price:100}],
  'CAFE':[{id:'meal',name:'Buy a meal',price:25}],
  'CLOTHING':[{id:'outfit',name:'Buy a new outfit',price:150}],
  'AUTO SHOP':[{id:'paint',name:'Custom car paint',price:200}]
 };
 function closePanels(){activePanel=null;document.getElementById('shopPanel').style.display='none';document.getElementById('dialoguePanel').style.display='none';}
 function openShop(shop){activePanel='shop';document.getElementById('dialoguePanel').style.display='none';document.getElementById('shopPanel').style.display='block';document.getElementById('shopTitle').textContent=shop.kind;document.getElementById('shopDescription').textContent=shop.description+' Cash: $'+cash.toLocaleString();const box=document.getElementById('shopOptions');box.innerHTML='';catalog[shop.kind].forEach(item=>{const b=document.createElement('button');b.textContent=item.name+' — $'+item.price;b.addEventListener('click',()=>buyItem(item));box.appendChild(b);});}
-function buyItem(item){if(cash<item.price){showToast('NOT ENOUGH CASH');return;}if(['sidearm','smg','scatter'].indexOf(item.id)>=0&&inventory.weapons.indexOf(item.id)>=0){showToast('ALREADY OWNED');return;}cash-=item.price;if(['sidearm','smg','scatter'].indexOf(item.id)>=0){inventory.weapons.push(item.id);weaponProp.visible=true;showToast('WEAPON PURCHASED · PRESS G AT PRACTICE TARGETS');}else if(item.id==='meal'){inventory.meals++;showToast('MEAL PURCHASED');}else if(item.id==='outfit'){inventory.outfits++;showToast('NEW OUTFIT PURCHASED');}else if(item.id==='paint'){inventory.paint++;carPaint();showToast('CAR PAINT UPDATED');}document.getElementById('cash').textContent='$'+cash.toLocaleString();saveGame();openShop(shops.find(sh=>sh.kind===document.getElementById('shopTitle').textContent)||shops[0]);}
+function buyItem(item){if(cash<item.price){showToast('NOT ENOUGH CASH');return;}cash-=item.price;if(item.id==='tokens'){inventory.arcadeTokens+=5;showToast('5 ARCADE TOKENS ADDED');}else if(item.id==='meal'){inventory.meals++;showToast('MEAL PURCHASED');}else if(item.id==='outfit'){inventory.outfits++;showToast('NEW OUTFIT PURCHASED');}else if(item.id==='paint'){inventory.paint++;carPaint();showToast('CAR PAINT UPDATED');}document.getElementById('cash').textContent='$'+cash.toLocaleString();saveGame();openShop(shops.find(sh=>sh.kind===document.getElementById('shopTitle').textContent)||shops[0]);}
 function carPaint(){const colors=[0x19b7d4,0xd94f4f,0xf0bd45,0x64b57b,0x8e79c5,0xf1eee5];const color=colors[inventory.paint%colors.length];car.traverse(o=>{if(o.isMesh&&(o.material===mats.car||o.userData.paintable)){o.userData.paintable=true;o.material=mat(color,.28,.35);}});}
 function interact(){if(activePanel){closePanels();return;}if(inCar){showToast('EXIT THE CAR TO INTERACT');return;}const p=player.position;let nearestShop=null,shopDist=1e9;shops.forEach(sh=>{const d=Math.hypot(p.x-sh.x,p.z-sh.z);if(d<shopDist){shopDist=d;nearestShop=sh;}});if(nearestShop&&shopDist<8){openShop(nearestShop);return;}let nearestNpc=null,npcDist=1e9;pedestrians.forEach(npc=>{const d=p.distanceTo(npc.group.position);if(d<npcDist){npcDist=d;nearestNpc=npc;}});if(nearestNpc&&npcDist<3.5){activePanel='dialogue';document.getElementById('shopPanel').style.display='none';document.getElementById('dialoguePanel').style.display='block';document.getElementById('dialogueName').textContent=nearestNpc.name+' · LOCAL';document.getElementById('dialogueText').textContent=nearestNpc.dialogue;}else showToast('NO ONE NEARBY · WALK TO A SHOP OR NPC');}
-function shoot(){if(!inventory.weapons.length){showToast('VISIT THE GUN STORE FIRST');return;}if(inCar){showToast('EXIT THE CAR TO USE EQUIPMENT');return;}const dx=Math.sin(player.rotation.y),dz=Math.cos(player.rotation.y);let best=null,bestDist=1e9;targetDummies.forEach(t=>{if(!t.visible)return;const tx=t.position.x-player.position.x,tz=t.position.z-player.position.z,d=Math.hypot(tx,tz),dot=(tx*dx+tz*dz)/(d||1);if(d<25&&dot>.55&&d<bestDist){best=t;bestDist=d;}});if(best){best.visible=false;best.userData.cooldown=5;showToast('PRACTICE TARGET HIT');}else showToast('NO PRACTICE TARGET IN FRONT');}
+
 const keyMap={'ArrowUp':'w','ArrowDown':'s','ArrowLeft':'a','ArrowRight':'d','Shift':'shift',' ':' '};
-addEventListener('keydown',e=>{const k=keyMap[e.key]||e.key.toLowerCase();keys[k]=true;if([' ','arrowup','arrowdown','arrowleft','arrowright'].includes(e.key.toLowerCase()))e.preventDefault();if(k==='e'&&!e.repeat)toggleCar();if(k==='f'&&!e.repeat)interact();if(k==='g'&&!e.repeat)shoot();if(k==='escape'&&!e.repeat)closePanels();if(k==='p'&&!e.repeat&&started){paused=!paused;keys={};showToast(paused?'PAUSED · PRESS P TO RESUME':'RESUMED');}});
+addEventListener('keydown',e=>{const k=keyMap[e.key]||e.key.toLowerCase();keys[k]=true;if([' ','arrowup','arrowdown','arrowleft','arrowright'].includes(e.key.toLowerCase()))e.preventDefault();if(k==='e'&&!e.repeat)toggleCar();if(k==='f'&&!e.repeat)interact();if(k==='escape'&&!e.repeat)closePanels();if(k==='p'&&!e.repeat&&started){paused=!paused;keys={};showToast(paused?'PAUSED · PRESS P TO RESUME':'RESUMED');}});
 addEventListener('keyup',e=>{const k=keyMap[e.key]||e.key.toLowerCase();keys[k]=false;});
 document.querySelectorAll('[data-key]').forEach(b=>{
  const k=b.dataset.key;const down=e=>{e.preventDefault();keys[k]=true;b.classList.add('down');if(k==='e')toggleCar();};const up=e=>{e.preventDefault();keys[k]=false;b.classList.remove('down');};
@@ -268,7 +267,6 @@ let started=false,paused=false,trafficToastCooldown=0;
 document.getElementById('play').addEventListener('click',()=>{started=true;document.getElementById('start').style.display='none';document.getElementById('hud').style.display='block';showToast('WELCOME TO OPEN CITY');});
 const clock=new THREE.Clock();let speed=0,heading=0;
 loadGame();
-if(inventory.weapons.length)weaponProp.visible=true;
 if(inventory.paint>0)carPaint();
 setJob();
 const v=new THREE.Vector3(),camTarget=new THREE.Vector3();
@@ -286,7 +284,6 @@ let mapTimer=0;
 function animate(){
  requestAnimationFrame(animate);const dt=Math.min(clock.getDelta(),.04);const t=clock.elapsedTime;
  marker.children[0].rotation.z+=dt*1.4;marker.children[1].position.y=1.8+Math.sin(t*2)*.25;
- targetDummies.forEach(target=>{if(target.userData.cooldown>0){target.userData.cooldown-=dt;if(target.userData.cooldown<=0)target.visible=true;}});
  if(started&&!paused){
   // Pedestrians stroll along sidewalks and turn around at district edges.
   for(const npc of pedestrians){
