@@ -215,7 +215,7 @@ function toggleCar(){
  document.getElementById('mode').textContent=inCar?'DRIVING • SPORTS COUPE':'ON FOOT';
  document.getElementById('prompt').innerHTML=inCar?'Drive <span class="key">W A S D</span> · Brake <span class="key">SPACE</span> · Exit <span class="key">E</span>':'Move <span class="key">W A S D</span> · Sprint <span class="key">SHIFT</span> · Enter car <span class="key">E</span>';
 }
-let started=false,paused=false;
+let started=false,paused=false,trafficToastCooldown=0;
 document.getElementById('play').addEventListener('click',()=>{started=true;document.getElementById('start').style.display='none';document.getElementById('hud').style.display='block';showToast('WELCOME TO OPEN CITY');});
 const clock=new THREE.Clock();let speed=0,heading=0;
 loadGame();
@@ -241,8 +241,10 @@ function animate(){
    npc.phase+=dt*npc.pace;
    const stride=Math.sin(npc.phase*5)*.42;
    npc.legs[0].rotation.x=stride;npc.legs[1].rotation.x=-stride;
-   if(npc.axis==='x')npc.group.position.x+=npc.direction*npc.pace*dt;
-   else npc.group.position.z+=npc.direction*npc.pace*dt;
+   const nextX=npc.group.position.x+(npc.axis==='x'?npc.direction*npc.pace*dt:0);
+   const nextZ=npc.group.position.z+(npc.axis==='z'?npc.direction*npc.pace*dt:0);
+   if(!blocked(nextX,nextZ,.55)){npc.group.position.x=nextX;npc.group.position.z=nextZ;}
+   else npc.direction*=-1;
    if(npc.group.position.x>145||npc.group.position.x< -145||npc.group.position.z>145||npc.group.position.z< -145)npc.direction*=-1;
    npc.group.rotation.y=npc.axis==='x'?(npc.direction>0?Math.PI/2:-Math.PI/2):(npc.direction>0?0:Math.PI);
   }
@@ -252,7 +254,7 @@ function animate(){
    if(vehicle.axis==='x'){p.x+=vehicle.direction*vehicle.speed*dt;if(p.x>150)p.x=-150;if(p.x< -150)p.x=150;}
    else{p.z+=vehicle.direction*vehicle.speed*dt;if(p.z>150)p.z=-150;if(p.z< -150)p.z=150;}
    const nearPlayer=(inCar?car.position:player.position).distanceTo(p);
-   if(nearPlayer<3.2&&inCar&&Math.abs(speed)>8){speed*=.78;showToast('TRAFFIC! DRIVE CAREFULLY');}
+   if(nearPlayer<3.2&&inCar&&Math.abs(speed)>8){speed*=.78;if(trafficToastCooldown<=0){showToast('TRAFFIC! DRIVE CAREFULLY');trafficToastCooldown=1.5;}}
   }
   if(inCar){
    const accel=keys.w?19:keys.s?-13:0;
@@ -276,6 +278,7 @@ function animate(){
   const dist=actor.position.distanceTo(marker.position);
   if(dist<3.2){cash+=250;deliveries++;missionIndex++;document.getElementById('cash').textContent='}
   document.getElementById('speedNum').textContent=Math.round(Math.abs(speed)*3.6);
+  if(trafficToastCooldown>0)trafficToastCooldown-=dt;
   if(toastTimer>0){toastTimer-=dt;if(toastTimer<=0)document.getElementById('toast').style.opacity=0;}
   mapTimer+=dt;if(mapTimer>.15){drawMap();mapTimer=0;}
  }
