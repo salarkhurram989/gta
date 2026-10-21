@@ -255,7 +255,7 @@ const player=makePlayer();player.position.set(2,0,12);
 let inCar=false,keys={},cash=0,deliveries=0,missionIndex=0,toastTimer=0;
 let inventory={meals:0,outfits:0,paint:0,arcadeTokens:0},activePanel=null,currentInterior=null;
 const SAVE_KEY='salarx-open-city-save-v1';
-function saveGame(){try{localStorage.setItem(SAVE_KEY,JSON.stringify({version:1,cash:cash,deliveries:deliveries,missionIndex:missionIndex,inventory:inventory}));}catch(e){showToast('SAVE UNAVAILABLE');}}
+function saveGame(){try{localStorage.setItem(SAVE_KEY,JSON.stringify({version:1,cash:cash,deliveries:deliveries,missionIndex:missionIndex,inventory:inventory,caches:caches.map(c=>c.active)}));}catch(e){showToast('SAVE UNAVAILABLE');}}
 function loadGame(){
  try{
   const raw=localStorage.getItem(SAVE_KEY);if(!raw)return;
@@ -265,6 +265,7 @@ function loadGame(){
    deliveries=Math.max(0,Math.floor(Number(data.deliveries)||0));
    missionIndex=Math.max(0,Math.floor(Number(data.missionIndex)||0));
    inventory={meals:Math.max(0,Number(data.inventory&&data.inventory.meals)||0),outfits:Math.max(0,Number(data.inventory&&data.inventory.outfits)||0),paint:Math.max(0,Number(data.inventory&&data.inventory.paint)||0),arcadeTokens:Math.max(0,Number(data.inventory&&data.inventory.arcadeTokens)||0)};
+   if(Array.isArray(data.caches))caches.forEach((cache,i)=>{if(data.caches[i]===false){cache.active=false;cache.group.visible=false;}});
    document.getElementById('cash').textContent='$'+cash.toLocaleString();
    document.getElementById('deliveries').textContent=deliveries;
   }
