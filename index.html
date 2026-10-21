@@ -60,14 +60,14 @@ button{font:inherit;cursor:pointer}#play{width:100%;padding:15px;background:var(
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 
 const root=document.getElementById('game');
-const scene=new THREE.Scene(); scene.background=new THREE.Color(0xe9a6a1); scene.fog=new THREE.Fog(0xe9a6a1,105,330);
+const scene=new THREE.Scene(); scene.background=new THREE.Color(0x91b7cf); scene.fog=new THREE.Fog(0x91b7cf,135,390);
 const camera=new THREE.PerspectiveCamera(65,innerWidth/innerHeight,.1,650);
 const renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});
-renderer.setPixelRatio(Math.min(devicePixelRatio,1.7));renderer.setSize(innerWidth,innerHeight);renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.outputColorSpace=THREE.SRGBColorSpace;root.appendChild(renderer.domElement);
-scene.add(new THREE.HemisphereLight(0xffe5e0,0x5b514b,2.0));
-const sun=new THREE.DirectionalLight(0xffc28a,2.5);sun.position.set(-65,110,50);sun.castShadow=true;sun.shadow.mapSize.set(1024,1024);sun.shadow.camera.left=-100;sun.shadow.camera.right=100;sun.shadow.camera.top=100;sun.shadow.camera.bottom=-100;scene.add(sun);
+renderer.setPixelRatio(Math.min(devicePixelRatio,1.45));renderer.setSize(innerWidth,innerHeight);renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.shadowMap.autoUpdate=true;renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.12;root.appendChild(renderer.domElement);
+scene.add(new THREE.HemisphereLight(0xd7edff,0x3d4c43,1.65));
+const sun=new THREE.DirectionalLight(0xffe0b1,2.8);sun.position.set(-65,110,50);sun.castShadow=true;sun.shadow.mapSize.set(768,768);sun.shadow.camera.left=-100;sun.shadow.camera.right=100;sun.shadow.camera.top=100;sun.shadow.camera.bottom=-100;scene.add(sun);
 const mat=(color,roughness=.85,metalness=0)=>new THREE.MeshStandardMaterial({color,roughness,metalness});
-const mats={grass:mat(0x4d7553),road:mat(0x303a43),side:mat(0xb6b9b3),line:mat(0xd5d7ca),white:mat(0xf0f0e6),glass:mat(0x77a9b8,.28,.25),dark:mat(0x17232a),car:mat(0x19b7d4,.28,.35),rubber:mat(0x161a1d),skin:mat(0xd6a17c),shirt:mat(0xe4e9ed),building:[0x9aabae,0xb6b2a8,0x697e89,0xd2c8b8,0x858e98,0x8fa7a0].map(c=>mat(c)),window:mat(0x31515d,.35,.15),tree:mat(0x32664a),trunk:mat(0x6e5138),glow:new THREE.MeshStandardMaterial({color:0xc7ff6b,emissive:0x83d42b,emissiveIntensity:1.8}),red:mat(0xc94d45),yellow:mat(0xf3b43f)};
+const mats={grass:mat(0x496c50),road:mat(0x252d35,.98),side:mat(0x9da7a9),line:mat(0xe5dfc9),white:mat(0xf0f0e6),glass:mat(0x83c8df,.2,.28),dark:mat(0x17232a),car:mat(0x19b7d4,.25,.45),rubber:mat(0x161a1d),skin:mat(0xd6a17c),shirt:mat(0xe4e9ed),building:[0x9aabae,0xb6b2a8,0x697e89,0xd2c8b8,0x858e98,0x8fa7a0,0xb77f68,0xc5b6a1].map(c=>mat(c)),window:mat(0x31515d,.22,.25),tree:mat(0x32664a),trunk:mat(0x6e5138),glow:new THREE.MeshStandardMaterial({color:0xc7ff6b,emissive:0x83d42b,emissiveIntensity:1.8}),red:mat(0xc94d45),yellow:mat(0xf3b43f),concrete:mat(0x9d9b91),door:mat(0x5b3f32),interiorFloor:mat(0x7d7569),neon:new THREE.MeshStandardMaterial({color:0x57dcff,emissive:0x168ab3,emissiveIntensity:1.4})};
 const boxGeo=new THREE.BoxGeometry(1,1,1);
 function cube(parent,material,x,y,z,sx,sy,sz,cast=true){const m=new THREE.Mesh(boxGeo,material);m.position.set(x,y,z);m.scale.set(sx,sy,sz);m.castShadow=cast;m.receiveShadow=true;parent.add(m);return m}
 const ground=cube(scene,mats.grass,0,-.65,0,520,1,520,false);
@@ -84,14 +84,20 @@ for(let z=-cityHalf;z<=cityHalf;z+=block){
   for(let x=-cityHalf;x<cityHalf;x+=8){const r=((x%block)+block)%block;if(r>6&&r<24)cube(scene,mats.line,x,.09,z,3.5,.025,.12,false);}
 }
 const obstacles=[];
+const explorableBuildings=[];
 let seed=76213;function rand(){seed=(seed*1664525+1013904223)>>>0;return seed/4294967296}
 for(let gx=-4;gx<=4;gx++)for(let gz=-4;gz<=4;gz++){
  if(Math.abs(gx)<=1&&Math.abs(gz)<=1)continue;
  const cx=gx*30+15,cz=gz*30+15;
  const w=11+rand()*8,d=11+rand()*8,h=8+rand()*32;
  const building=new THREE.Group();building.position.set(cx,0,cz);scene.add(building);
- cube(building,mats.building[Math.floor(rand()*mats.building.length)],0,h/2,0,w,h,d);
+ const facade=mats.building[Math.floor(rand()*mats.building.length)];
+ cube(building,facade,0,h/2,0,w,h,d);
  cube(building,mats.dark,0,h+.15,0,w*.88,.3,d*.88,false);
+ // Rooftop parapet and a compact utility block give the skyline a less boxy silhouette.
+ cube(building,mats.concrete,0,h+.34,d*.42,w*.92,.38,.22,false);
+ cube(building,mats.concrete,0,h+.34,-d*.42,w*.92,.38,.22,false);
+ cube(building,mats.dark,w*.28,h+.85,0,w*.16,1.0,d*.2,false);
  // facade window strips
  const rows=Math.max(2,Math.floor(h/3.5));
  for(let row=0;row<rows;row++){
@@ -101,6 +107,13 @@ for(let gx=-4;gx<=4;gx++)for(let gz=-4;gz<=4;gz++){
    cube(building,mats.window,xx,yy,d/2+.02,.95,1.25,.05,false);
    cube(building,mats.window,xx,yy,-d/2-.02,.95,1.25,.05,false);
   }
+ }
+ const canExplore=rand()<.22;
+ if(canExplore){
+  cube(building,mats.door,0,1.15,d/2+.045,1.35,2.3,.09,false);
+  cube(building,mats.neon,0,2.48,d/2+.08,1.6,.12,.12,false);
+  cube(building,mats.concrete,0,.12,d/2+.55,2.2,.24,1.0,false);
+  explorableBuildings.push({kind:'BUILDING',x:cx,z:cz,doorX:cx,doorZ:cz+d/2+1.9,exterior:building,w:w,d:d,h:h,description:'Explore this small furnished building.'});
  }
  obstacles.push({x:cx,z:cz,rx:w*.58,rz:d*.58});
 }
@@ -112,13 +125,43 @@ function addShop(kind,x,z,color,description){
  cube(g,mats.dark,0,4.25,0,8.5,.25,7.5,false);
  cube(g,mat(0x78b7c1,.3,.1),0,2.0,3.53,2.3,1.7,.08,false);
  cube(g,mat(color),0,3.7,3.62,6.8,.7,.18,false);
- shops.push({kind:kind,x:x+(x>0?-5.3:5.3),z:z+(z>0?-5.3:5.3),description:description});
+ shops.push({kind:kind,x:x+(x>0?-5.3:5.3),z:z+(z>0?-5.3:5.3),description:description,exterior:g,doorX:x+(x>0?-5.3:5.3),doorZ:z+(z>0?-5.3:5.3)});
  obstacles.push({x:x,z:z,rx:4.7,rz:4.2});
 }
 addShop('ARCADE',-15,-15,0xc65a4a,'Spend cash on arcade tokens and local high-score challenges.');
 addShop('CAFE',15,-15,0xc79a4b,'Spend cash on a meal and a short break.');
 addShop('CLOTHING',-15,15,0x5b91b9,'Buy a fresh outfit for your character.');
 addShop('AUTO SHOP',15,15,0x5ba783,'Pay for a custom paint job for your car.');
+// Interior rooms are lightweight and appear only while the player is inside.
+function makeInterior(record,index){
+ const room=new THREE.Group();room.position.set(record.x,0,record.z);scene.add(room);room.visible=false;
+ const w=9,d=9,h=3.6;
+ cube(room,mats.interiorFloor,0,-.08,0,w,.16,d,false);
+ cube(room,mats.concrete,0,h/2,-d/2,w,h,.22,false);
+ cube(room,mats.concrete,-w/2,h/2,0,.22,h,d,false);
+ cube(room,mats.concrete,w/2,h/2,0,.22,h,d,false);
+ cube(room,mats.concrete,-w*.28,h/2,d/2,.44,h,.22,false);
+ cube(room,mats.concrete,w*.28,h/2,d/2,.44,h,.22,false);
+ cube(room,mats.dark,0,h+.04,0,w,.12,d,false);
+ cube(room,mats.neon,0,2.85,-d/2+.16,2.8,.08,.08,false);
+ // Furniture and lighting accents vary by building type.
+ if(record.kind==='CAFE'||record.kind==='ARCADE'){
+  cube(room,mat(0x8d5e40),0,.8,-2.7,4.8,.18,1.0,false);
+  for(const x of [-1.5,1.5]){cube(room,mat(0xc29b70),x,.48,.8,.85,.12,.85,false);cube(room,mats.dark,x,.24,.8,.12,.48,.12,false);}
+ }else if(record.kind==='AUTO SHOP'){
+  cube(room,mat(0x465660),0,.25,-2.7,5.8,.5,2.0,false);
+  cube(room,mats.yellow,0,1.0,-2.7,5.5,.08,.08,false);
+ }else if(record.kind==='CLOTHING'){
+  for(const x of [-2,0,2]){cube(room,mat(0x536d85),x,1.15,-2.8,.65,1.5,.25,false);cube(room,mat(0xd2b48c),x,2.0,-2.8,.9,.12,.3,false);}
+ }else{
+  cube(room,mat(0x745a46),0,.65,-2.7,3.8,.15,.8,false);
+  cube(room,mat(0x596f78),0,1.6,-3.05,2.0,1.5,.12,false);
+  cube(room,mats.dark,0,2.5,-3.0,2.3,.12,.18,false);
+ }
+ record.interior=room;record.interiorWidth=w;record.interiorDepth=d;
+}
+shops.forEach((shop,i)=>makeInterior(shop,i));
+explorableBuildings.slice(0,12).forEach((building,i)=>makeInterior(building,i+shops.length));
 // Small trees and street lamps on sidewalks
 for(let i=0;i<95;i++){
  const x=(rand()-.5)*270,z=(rand()-.5)*270;
