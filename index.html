@@ -219,6 +219,7 @@ let started=false,paused=false;
 document.getElementById('play').addEventListener('click',()=>{started=true;document.getElementById('start').style.display='none';document.getElementById('hud').style.display='block';showToast('WELCOME TO OPEN CITY');});
 const clock=new THREE.Clock();let speed=0,heading=0;
 loadGame();
+setJob();
 const v=new THREE.Vector3(),camTarget=new THREE.Vector3();
 function blocked(x,z,r=1){return obstacles.some(o=>Math.abs(x-o.x)<o.rx+r&&Math.abs(z-o.z)<o.rz+r);}
 function drawMap(){
