@@ -33,16 +33,16 @@ button{font:inherit;cursor:pointer}#play{width:100%;padding:15px;background:var(
   <div class="start-card">
     <div class="kicker">SALARX STUDIOS • BROWSER GAME</div>
     <div class="logo">OPEN CITY<br><span>3D</span></div>
-    <p class="desc">A small open-world sandbox. Walk the streets, jump into your sports car, explore the city and deliver glowing courier packages to earn cash.</p>
-    <div class="features"><span class="pill">FULL 3D CITY</span><span class="pill">DRIVE + WALK</span><span class="pill">COURIER MISSIONS</span><span class="pill">NO INSTALL</span></div>
+    <p class="desc">An original 3D open-world city with wandering pedestrians, moving street traffic, pastel sunset skies, sports-car driving and courier jobs.</p>
+    <div class="features"><span class="pill">3D CITY</span><span class="pill">PEDESTRIANS</span><span class="pill">MOVING TRAFFIC</span><span class="pill">COURIER JOBS</span></div>
     <button id="play">ENTER THE CITY ↗</button>
-    <div class="fine">Original fan-made prototype. Uses procedural shapes, not official Grand Theft Auto assets. Requires an internet connection to load the Three.js engine.</div>
+    <div class="fine">Original open-city prototype with procedural characters and vehicles. Requires internet to load the 3D engine.</div>
   </div>
 </div>
 <div id="hud">
   <div id="brand" class="panel"><div class="kicker">SALARX • CITY DISTRICT</div><h1>OPEN CITY <span style="color:var(--cyan)">3D</span></h1><small id="mode">ON FOOT</small></div>
   <div id="mission" class="panel"><strong>ACTIVE JOB / 01</strong><p id="missionText">Find the glowing pickup marker.</p><div class="sub" id="missionSub">Deliver packages around the city to earn cash.</div></div>
-  <div id="stats" class="panel"><div class="label">CASH BALANCE</div><div class="money" id="cash">$0</div><div class="label">DELIVERIES <span id="deliveries">0</span></div></div>
+  <div id="stats" class="panel"><div class="label">CASH BALANCE</div><div class="money" id="cash">$0</div><div class="label">DELIVERIES <span id="deliveries">0</span></div><div class="label" style="margin-top:5px;color:var(--cyan)">CITY LIFE · 34 NPCs / 8 CARS</div></div>
   <div id="mapWrap"><canvas id="map" width="280" height="280"></canvas></div>
   <div id="prompt" class="panel">Move <span class="key">W A S D</span> · Sprint <span class="key">SHIFT</span> · Enter/exit car <span class="key">E</span></div>
   <div id="speed"><div class="num"><span id="speedNum">0</span></div><div class="unit">KM/H</div></div>
@@ -58,12 +58,12 @@ button{font:inherit;cursor:pointer}#play{width:100%;padding:15px;background:var(
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 
 const root=document.getElementById('game');
-const scene=new THREE.Scene(); scene.background=new THREE.Color(0x8fc5d4); scene.fog=new THREE.Fog(0x8fc5d4,105,330);
+const scene=new THREE.Scene(); scene.background=new THREE.Color(0xe9a6a1); scene.fog=new THREE.Fog(0xe9a6a1,105,330);
 const camera=new THREE.PerspectiveCamera(65,innerWidth/innerHeight,.1,650);
 const renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});
 renderer.setPixelRatio(Math.min(devicePixelRatio,1.7));renderer.setSize(innerWidth,innerHeight);renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.outputColorSpace=THREE.SRGBColorSpace;root.appendChild(renderer.domElement);
-scene.add(new THREE.HemisphereLight(0xe5f7ff,0x5b6851,2.1));
-const sun=new THREE.DirectionalLight(0xfff1d2,2.3);sun.position.set(-65,110,50);sun.castShadow=true;sun.shadow.mapSize.set(1024,1024);sun.shadow.camera.left=-100;sun.shadow.camera.right=100;sun.shadow.camera.top=100;sun.shadow.camera.bottom=-100;scene.add(sun);
+scene.add(new THREE.HemisphereLight(0xffe5e0,0x5b514b,2.0));
+const sun=new THREE.DirectionalLight(0xffc28a,2.5);sun.position.set(-65,110,50);sun.castShadow=true;sun.shadow.mapSize.set(1024,1024);sun.shadow.camera.left=-100;sun.shadow.camera.right=100;sun.shadow.camera.top=100;sun.shadow.camera.bottom=-100;scene.add(sun);
 const mat=(color,roughness=.85,metalness=0)=>new THREE.MeshStandardMaterial({color,roughness,metalness});
 const mats={grass:mat(0x4d7553),road:mat(0x303a43),side:mat(0xb6b9b3),line:mat(0xd5d7ca),white:mat(0xf0f0e6),glass:mat(0x77a9b8,.28,.25),dark:mat(0x17232a),car:mat(0x19b7d4,.28,.35),rubber:mat(0x161a1d),skin:mat(0xd6a17c),shirt:mat(0xe4e9ed),building:[0x9aabae,0xb6b2a8,0x697e89,0xd2c8b8,0x858e98,0x8fa7a0].map(c=>mat(c)),window:mat(0x31515d,.35,.15),tree:mat(0x32664a),trunk:mat(0x6e5138),glow:new THREE.MeshStandardMaterial({color:0xc7ff6b,emissive:0x83d42b,emissiveIntensity:1.8}),red:mat(0xc94d45),yellow:mat(0xf3b43f)};
 const boxGeo=new THREE.BoxGeometry(1,1,1);
@@ -127,6 +127,56 @@ function makeCar(){
  g.userData.wheels=wheels;g.position.set(0,0,5);return g;
 }
 const car=makeCar();
+
+// --- Living city: pedestrians and ambient traffic ---
+const pedestrianMats=[mat(0x28b6a8),mat(0xf0b64c),mat(0xd86f8a),mat(0xe8e5d8),mat(0x526bd0),mat(0x9b6a45),mat(0x72a65a)];
+const pedestrians=[];
+function makePedestrian(x,z,phase){
+ const g=new THREE.Group();
+ const shirt=pedestrianMats[Math.floor(rand()*pedestrianMats.length)];
+ const pants=mat([0x273747,0x3b3b45,0x655747,0x202a31][Math.floor(rand()*4)]);
+ const skin=mat([0xc98965,0xe0b18a,0x8f5d43,0xf0c6a2][Math.floor(rand()*4)]);
+ const torso=new THREE.Mesh(new THREE.BoxGeometry(.48,.7,.28),shirt);torso.position.y=1.08;torso.castShadow=true;g.add(torso);
+ const head=new THREE.Mesh(new THREE.SphereGeometry(.19,8,6),skin);head.position.y=1.57;head.castShadow=true;g.add(head);
+ const hair=new THREE.Mesh(new THREE.SphereGeometry(.195,8,5,0,Math.PI*2,0,Math.PI*.6),mat(0x342720));hair.position.y=1.64;g.add(hair);
+ const legs=[];
+ for(const side of [-1,1]){
+  const leg=new THREE.Mesh(new THREE.BoxGeometry(.16,.48,.17),pants);leg.position.set(side*.13,.39,0);leg.castShadow=true;g.add(leg);legs.push(leg);
+ }
+ g.position.set(x,0,z);scene.add(g);
+ return {group:g,phase:phase||rand()*6.28,pace:1.2+rand()*1.1,axis:rand()<.5?'x':'z',direction:rand()<.5?-1:1,legs};
+}
+for(let i=0;i<34;i++){
+ const lane=Math.floor(rand()*9)-4;
+ const along=(rand()-.5)*270;
+ const side=rand()<.5?-1:1;
+ const x=rand()<.5?lane*30+side*7.3:along;
+ const z=rand()<.5?along:lane*30+side*7.3;
+ if(!blocked(x,z,.8))pedestrians.push(makePedestrian(x,z,rand()*6.28));
+}
+const traffic=[];
+function makeTrafficCar(color,x,z,axis,direction){
+ const g=new THREE.Group();
+ const bodyMat=mat(color,.32,.18),glassMat=mat(0x75a7b5,.25,.1),wheelMat=mat(0x202326);
+ cube(g,bodyMat,0,.62,0,1.65,.55,3.25);
+ cube(g,bodyMat,0,1.03,-.15,1.35,.48,1.55);
+ cube(g,glassMat,0,1.08,.66,1.18,.32,.05,false);
+ cube(g,glassMat,0,1.08,-.95,1.18,.32,.05,false);
+ cube(g,mats.yellow,-.48,.62,1.64,.22,.12,.04,false);cube(g,mats.yellow,.48,.62,1.64,.22,.12,.04,false);
+ cube(g,mats.red,-.48,.62,-1.64,.22,.12,.04,false);cube(g,mats.red,.48,.62,-1.64,.22,.12,.04,false);
+ for(const wx of [-.82,.82])for(const wz of [-1,1]){
+  const wheel=new THREE.Mesh(new THREE.CylinderGeometry(.25,.25,.12,8),wheelMat);wheel.rotation.z=Math.PI/2;wheel.position.set(wx,.3,wz);g.add(wheel);
+ }
+ g.position.set(x,0,z);g.rotation.y=axis==='x'?(direction>0?Math.PI/2:-Math.PI/2):(direction>0?0:Math.PI);scene.add(g);
+ return {group:g,axis,direction,speed:5+rand()*4};
+}
+const trafficColors=[0xe85c55,0xf2c14e,0x2e9db5,0xe8e0d1,0x596cbd,0x2b3038,0x6eaa68,0xd97a42];
+for(let i=0;i<trafficColors.length;i++){
+ const axis=i%2===0?'x':'z',direction=i%4<2?1:-1,lane=(Math.floor(i/2)%5-2)*30;
+ const offset=(rand()-.5)*250;
+ traffic.push(makeTrafficCar(trafficColors[i],axis==='x'?offset:lane,axis==='x'?lane:offset,axis,direction));
+}
+
 function makePlayer(){
  const g=new THREE.Group();scene.add(g);
  const body=new THREE.Mesh(new THREE.CapsuleGeometry(.38,.72,4,8),mats.shirt);body.position.y=1.1;body.castShadow=true;g.add(body);
@@ -179,6 +229,24 @@ function animate(){
  requestAnimationFrame(animate);const dt=Math.min(clock.getDelta(),.04);const t=clock.elapsedTime;
  marker.children[0].rotation.z+=dt*1.4;marker.children[1].position.y=1.8+Math.sin(t*2)*.25;
  if(started){
+  // Pedestrians stroll along sidewalks and turn around at district edges.
+  for(const npc of pedestrians){
+   npc.phase+=dt*npc.pace;
+   const stride=Math.sin(npc.phase*5)*.42;
+   npc.legs[0].rotation.x=stride;npc.legs[1].rotation.x=-stride;
+   if(npc.axis==='x')npc.group.position.x+=npc.direction*npc.pace*dt;
+   else npc.group.position.z+=npc.direction*npc.pace*dt;
+   if(npc.group.position.x>145||npc.group.position.x< -145||npc.group.position.z>145||npc.group.position.z< -145)npc.direction*=-1;
+   npc.group.rotation.y=npc.axis==='x'?(npc.direction>0?Math.PI/2:-Math.PI/2):(npc.direction>0?0:Math.PI);
+  }
+  // Light traffic follows the city grid and loops around the district.
+  for(const vehicle of traffic){
+   const p=vehicle.group.position;
+   if(vehicle.axis==='x'){p.x+=vehicle.direction*vehicle.speed*dt;if(p.x>150)p.x=-150;if(p.x< -150)p.x=150;}
+   else{p.z+=vehicle.direction*vehicle.speed*dt;if(p.z>150)p.z=-150;if(p.z< -150)p.z=150;}
+   const nearPlayer=(inCar?car.position:player.position).distanceTo(p);
+   if(nearPlayer<3.2&&inCar&&Math.abs(speed)>8){speed*=.78;showToast('TRAFFIC! DRIVE CAREFULLY');}
+  }
   if(inCar){
    const accel=keys.w?19:keys.s?-13:0;
    speed+=accel*dt;
