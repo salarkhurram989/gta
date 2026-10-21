@@ -1,28 +1,51 @@
-# Open City 3D
+# SALARX Open City 3D
 
-An original browser-based 3D open-world driving prototype built with Three.js.
+An original browser-based 3D open-city driving and exploration prototype built with Three.js. It takes broad inspiration from classic open-world city games, while using original procedural content rather than GTA code, maps, characters, missions, models, textures, or music.
 
 ## Play online
-Open **Settings → Pages** in this repository, select **Deploy from a branch**, choose `main` and `/(root)`, then save. After GitHub Pages finishes publishing, the game will be available at:
 
-https://salarkhurram989.github.io/gta/
+If GitHub Pages is enabled for this repository (Settings → Pages → Deploy from a branch → `main` → `/(root)`), play at:
+
+**https://salarkhurram989.github.io/gta/**
+
+The browser version loads Three.js from jsDelivr, so an internet connection is required.
+
+## Current prototype features
+
+- Procedural 3D city blocks, buildings, roads, trees and street markings
+- Third-person player movement and sprinting
+- Sports coupe with steering, acceleration, reverse and braking
+- Procedural pedestrians and ambient moving traffic
+- Courier destinations, cash rewards and delivery counter
+- Minimap, speed HUD and mobile touch controls
+- Keyboard pause/resume with **P**
+- Local progress saving after completed deliveries
 
 ## Controls
+
 - **WASD / Arrow keys** — move or drive
 - **Shift** — sprint while on foot
 - **E** — enter or exit the sports car (stand close to it)
 - **Space** — brake while driving
+- **P** — pause/resume
 - On phones/tablets, use the on-screen controls
 
-## Features
-- Procedurally generated 3D city blocks, buildings, roads, trees and street markings
-- Third-person character movement
-- Drivable sports coupe with steering, acceleration, reverse and braking
-- Courier missions, cash rewards and delivery counter
-- Mini-map and speed HUD
-- Mobile touch controls
+## Android APK
 
-## Notes
-- Uses Three.js 0.160.0 from jsDelivr, so an internet connection is required.
-- Uses original procedural geometry, not Rockstar code, maps, models, textures, or audio.
-- This is a playable prototype, not a full commercial-scale GTA replacement.
+The Android WebView wrapper and GitHub Actions workflow are in `android/` and `.github/workflows/build-android-apk.yml`.
+
+- Build workflow: https://github.com/salarkhurram989/gta/actions/workflows/build-android-apk.yml
+- Releases: https://github.com/salarkhurram989/gta/releases
+- APK builds are debug builds. Only install an APK from a release after checking that the corresponding workflow succeeded.
+- The Android build currently loads the Three.js engine from the network, so it requires internet access.
+- Android 4.0.4 compatibility on Samsung Galaxy Tab 10.1 SHW-M380K is **not verified on physical hardware**. A successful APK build does not prove that the tablet's WebView supports the required WebGL features or can run the game smoothly.
+
+## Development documents
+
+- [Engineering master prompt](docs/MASTER_PROMPT.md)
+- [Staged development roadmap](docs/DEVELOPMENT_ROADMAP.md)
+- [QA and acceptance checklist](docs/TEST_PLAN.md)
+
+## Known limitations
+
+This is an evolving prototype, not a full commercial-scale open-world game. Pedestrian and traffic behavior is lightweight and not yet equivalent to robust pathfinding or a complete traffic simulation. The mission loop currently focuses on courier deliveries; the ten-mission framework, vehicle garage, full progression, advanced police AI, audio and weather are future stages. Features should be considered verified only after the tests in the QA checklist have actually been run.
