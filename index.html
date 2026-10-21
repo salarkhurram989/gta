@@ -1,1 +1,50 @@
-PLACEHOLDER
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>SALARX Open City 3D</title>
+<meta name="description" content="SALARX Open City 3D is an original browser-based open-city driving and exploration prototype with pedestrians, traffic and courier jobs.">
+<style>
+:root{color-scheme:dark;--cyan:#62e9ff;--lime:#c7ff6b;--panel:rgba(8,15,22,.82)}
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#101820;font-family:Inter,system-ui,Segoe UI,Arial,sans-serif;color:#f4f8fb}canvas{display:block}
+#game{position:fixed;inset:0}#hud{position:fixed;inset:0;pointer-events:none;display:none}
+.panel{background:var(--panel);border:1px solid rgba(255,255,255,.14);backdrop-filter:blur(10px);border-radius:12px;box-shadow:0 12px 35px #0004}
+#brand{position:absolute;left:18px;top:18px;padding:12px 15px;min-width:190px}
+.kicker{font-size:10px;letter-spacing:2.4px;color:var(--cyan);font-weight:800}#brand h1{font-size:20px;letter-spacing:1px;margin:4px 0 0;font-weight:900}#brand small{font-size:11px;color:#aab8c2}
+#mission{position:absolute;left:18px;top:110px;width:245px;padding:13px 15px}#mission strong{font-size:11px;letter-spacing:1.5px;color:var(--lime)}#mission p{font-size:13px;line-height:1.4;margin:7px 0;color:#e4edf2}#mission .sub{font-size:11px;color:#9eacb8}
+#stats{position:absolute;right:18px;top:18px;padding:12px 15px;min-width:145px;text-align:right}#stats .money{font-size:22px;font-weight:850;color:var(--lime)}#stats .label{font-size:10px;letter-spacing:1.7px;color:#aab8c2}
+#mapWrap{position:absolute;right:18px;top:105px;width:150px;height:150px;padding:5px;border-radius:12px;background:#071019d9;border:1px solid #ffffff24}#map{width:100%;height:100%;border-radius:8px}
+#prompt{position:absolute;bottom:30px;left:50%;transform:translateX(-50%);padding:11px 17px;font-size:12px;color:#e7f4f7;white-space:nowrap;text-align:center}
+.key{display:inline-block;border:1px solid #ffffff55;border-radius:5px;padding:2px 6px;margin:0 2px;color:var(--cyan);font-weight:800}
+#speed{position:absolute;right:18px;bottom:22px;text-align:right}#speed .num{font-size:37px;font-weight:900;line-height:1}#speed .unit{font-size:10px;letter-spacing:2px;color:#aab8c2}
+#toast{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);padding:12px 20px;color:var(--lime);font-weight:800;letter-spacing:1px;opacity:0;transition:opacity .2s}#dialoguePanel{display:none;position:absolute;left:50%;bottom:90px;transform:translateX(-50%);width:min(420px,90vw);padding:14px;pointer-events:auto}#dialoguePanel strong,#shopPanel strong{color:var(--cyan);letter-spacing:1px}#dialoguePanel p,#shopPanel p{font-size:13px;line-height:1.5;margin:8px 0}#shopPanel{display:none;position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:min(390px,92vw);padding:18px;pointer-events:auto;z-index:8}#shopOptions{display:grid;gap:8px;margin:12px 0}#shopPanel button{border:1px solid #ffffff30;background:#13252d;color:#f4f8fb;padding:10px;border-radius:8px;text-align:left}#shopPanel #closeShop{width:100%;text-align:center;background:#27353b}#dialoguePanel .sub{font-size:11px;color:#9eacb8}
+#start{position:fixed;inset:0;display:grid;place-items:center;background:linear-gradient(125deg,rgba(3,10,16,.91),rgba(4,20,27,.67)),radial-gradient(ellipse at 70% 40%,#1a5663 0,transparent 48%);z-index:5}
+.start-card{width:min(560px,calc(100vw - 30px));padding:clamp(22px,5vw,42px);border:1px solid #ffffff24;background:#09131bea;border-radius:20px;box-shadow:0 25px 90px #0008}
+.logo{font-size:clamp(38px,8vw,68px);font-weight:1000;letter-spacing:-3px;line-height:.9;margin:14px 0}.logo span{color:var(--cyan)}.desc{color:#aebdc6;line-height:1.65;font-size:14px;max-width:430px}.features{display:flex;flex-wrap:wrap;gap:8px;margin:20px 0}.pill{border:1px solid #ffffff22;border-radius:999px;padding:7px 10px;color:#c7d7de;font-size:11px}
+button{font:inherit;cursor:pointer}#play{width:100%;padding:15px;background:var(--lime);color:#10170a;border:0;border-radius:10px;font-weight:950;letter-spacing:1.4px;box-shadow:0 6px 0 #7a9c37}#play:active{transform:translateY(2px);box-shadow:0 4px 0 #7a9c37}.fine{font-size:10px;color:#70818d;margin-top:15px;line-height:1.5}
+#touch{display:none;position:absolute;bottom:18px;left:14px;right:14px;justify-content:space-between;align-items:end;pointer-events:auto}.pad{display:grid;grid-template-columns:repeat(3,45px);grid-template-rows:repeat(2,43px);gap:5px}.touchbtn{background:#09131dcc;border:1px solid #ffffff40;border-radius:10px;color:#eafaff;font-weight:900;touch-action:none}.touchbtn:active,.touchbtn.down{background:#62e9ff66}.pad .up{grid-column:2}.pad .left{grid-column:1;grid-row:2}.pad .down{grid-column:2;grid-row:2}.pad .right{grid-column:3;grid-row:2}.actions{display:flex;gap:7px;align-items:end}.actions button{width:55px;height:55px;border-radius:50%}
+@media(max-width:650px){#brand{left:10px;top:10px;min-width:0;padding:9px 11px}#brand h1{font-size:16px}#mission{left:10px;top:80px;width:190px;padding:10px}#mission p{font-size:11px}#stats{right:10px;top:10px;min-width:100px;padding:9px 11px}#stats .money{font-size:18px}#mapWrap{right:10px;top:91px;width:104px;height:104px}#prompt{bottom:112px;font-size:10px;max-width:90vw;white-space:normal}#speed{right:12px;bottom:135px}#speed .num{font-size:28px}#touch{display:flex}}
+
+#customizeBtn{position:absolute;top:18px;left:50%;transform:translateX(-50%);pointer-events:auto;border:1px solid #62e9ff77;background:#07151ee8;color:#62e9ff;padding:10px 14px;border-radius:10px;font-weight:900;z-index:7}
+#customPanel{display:none;position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:min(460px,94vw);max-height:82vh;overflow:auto;padding:18px;pointer-events:auto;z-index:10}
+#customPanel h3{font-size:17px;margin:0 0 12px;color:var(--cyan)}.customRow{display:grid;grid-template-columns:1fr 1.4fr;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #ffffff18}.customRow label{font-size:12px;color:#dbe8ed}.swatches{display:flex;gap:7px;flex-wrap:wrap}.swatch{width:30px;height:30px;border:2px solid #ffffff66;border-radius:8px;padding:0;min-width:30px}.swatch.selected{outline:2px solid var(--lime);outline-offset:2}#customPanel select,#customPanel input[type=range]{width:100%;accent-color:var(--cyan);background:#13252d;color:#fff;border:1px solid #ffffff30;border-radius:7px;padding:7px}#customPanel .customActions{display:flex;gap:8px;margin-top:14px}#customPanel .customActions button{flex:1;border:1px solid #ffffff30;background:#20323b;color:#fff;padding:10px;border-radius:8px;font-weight:800}
+@media(max-width:650px){#customizeBtn{top:72px;left:auto;right:10px;transform:none;padding:8px 10px;font-size:10px}#customPanel{top:50%;max-height:76vh;padding:14px}.customRow{grid-template-columns:1fr 1.2fr}}
+</style>
+</head>
+<body>
+<div id="game"></div>
+<div id="start">
+  <div class="start-card">
+    <div class="kicker">SALARX STUDIOS • BROWSER GAME</div>
+    <div class="logo">OPEN CITY<br><span>3D</span></div>
+    <p class="desc">LOADING FULL GAME... If you see this static page, the full game file is being restored. Refresh in a moment.</p>
+    <button id="play" onclick="location.reload()">REFRESH</button>
+  </div>
+</div>
+<script>
+// Temporary stub while full game is restored via follow-up commit
+console.warn('Stub index - full game restore in progress');
+</script>
+</body>
+</html>
