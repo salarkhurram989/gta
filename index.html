@@ -33,15 +33,15 @@ button{font:inherit;cursor:pointer}#play{width:100%;padding:15px;background:var(
   <div class="start-card">
     <div class="kicker">SALARX STUDIOS • BROWSER GAME</div>
     <div class="logo">OPEN CITY<br><span>3D</span></div>
-    <p class="desc">Explore an original open-world city with 64 pedestrians, traffic, conversations, shops, spending, courier jobs and arcade activities.</p>
-    <div class="features"><span class="pill">3D CITY</span><span class="pill">PEDESTRIANS</span><span class="pill">MOVING TRAFFIC</span><span class="pill">COURIER JOBS</span></div>
+    <p class="desc">Explore a living 3D city with moving traffic, 64 pedestrians, enterable buildings, furnished shops, courier jobs, hidden cash caches and a changing day-night cycle.</p>
+    <div class="features"><span class="pill">OPEN 3D CITY</span><span class="pill">DAY / NIGHT</span><span class="pill">ENTERABLE INTERIORS</span><span class="pill">HIDDEN CASH CACHES</span><span class="pill">DELIVERY JOBS</span></div>
     <button id="play">ENTER THE CITY ↗</button>
-    <div class="fine">Original open-city prototype with procedural characters and vehicles. Requires internet to load the 3D engine. Press P to pause/resume; progress saves locally after deliveries.</div>
+    <div class="fine">Original open-city prototype with procedural characters and vehicles. Requires internet to load the 3D engine. Press P to pause/resume; deliveries and cash-cache rewards save locally.</div>
   </div>
 </div>
 <div id="hud">
   <div id="brand" class="panel"><div class="kicker">SALARX • CITY DISTRICT</div><h1>OPEN CITY <span style="color:var(--cyan)">3D</span></h1><small id="mode">ON FOOT</small></div>
-  <div id="mission" class="panel"><strong>ACTIVE JOB / 01</strong><p id="missionText">Find the glowing pickup marker.</p><div class="sub" id="missionSub">Deliver packages around the city to earn cash.</div></div>
+  <div id="mission" class="panel"><strong>ACTIVE JOB / CITY EXPLORATION</strong><p id="missionText">Find the glowing pickup marker.</p><div class="sub" id="missionSub">Deliver packages around the city to earn cash.</div></div>
   <div id="stats" class="panel"><div class="label">CASH BALANCE</div><div class="money" id="cash">$0</div><div class="label">DELIVERIES <span id="deliveries">0</span></div><div class="label" style="margin-top:5px;color:var(--cyan)">CITY LIFE · 64 NPCs / 8 CARS</div></div>
   <div id="mapWrap"><canvas id="map" width="280" height="280"></canvas></div>
   <div id="prompt" class="panel">Move <span class="key">W A S D</span> · Sprint <span class="key">SHIFT</span> · Enter/exit car <span class="key">E</span> · Talk/shop <span class="key">F</span> · Pause <span class="key">P</span></div>
@@ -64,7 +64,7 @@ const scene=new THREE.Scene(); scene.background=new THREE.Color(0x91b7cf); scene
 const camera=new THREE.PerspectiveCamera(65,innerWidth/innerHeight,.1,650);
 const renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});
 renderer.setPixelRatio(Math.min(devicePixelRatio,1.45));renderer.setSize(innerWidth,innerHeight);renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.shadowMap.autoUpdate=true;renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.12;root.appendChild(renderer.domElement);
-scene.add(new THREE.HemisphereLight(0xd7edff,0x3d4c43,1.65));
+const skyLight=new THREE.HemisphereLight(0xd7edff,0x3d4c43,1.65);scene.add(skyLight);
 const sun=new THREE.DirectionalLight(0xffe0b1,2.8);sun.position.set(-65,110,50);sun.castShadow=true;sun.shadow.mapSize.set(768,768);sun.shadow.camera.left=-100;sun.shadow.camera.right=100;sun.shadow.camera.top=100;sun.shadow.camera.bottom=-100;scene.add(sun);
 const mat=(color,roughness=.85,metalness=0)=>new THREE.MeshStandardMaterial({color,roughness,metalness});
 const mats={grass:mat(0x496c50),road:mat(0x252d35,.98),side:mat(0x9da7a9),line:mat(0xe5dfc9),white:mat(0xf0f0e6),glass:mat(0x83c8df,.2,.28),dark:mat(0x17232a),car:mat(0x19b7d4,.25,.45),rubber:mat(0x161a1d),skin:mat(0xd6a17c),shirt:mat(0xe4e9ed),building:[0x9aabae,0xb6b2a8,0x697e89,0xd2c8b8,0x858e98,0x8fa7a0,0xb77f68,0xc5b6a1].map(c=>mat(c)),window:mat(0x31515d,.22,.25),tree:mat(0x32664a),trunk:mat(0x6e5138),glow:new THREE.MeshStandardMaterial({color:0xc7ff6b,emissive:0x83d42b,emissiveIntensity:1.8}),red:mat(0xc94d45),yellow:mat(0xf3b43f),concrete:mat(0x9d9b91),door:mat(0x5b3f32),interiorFloor:mat(0x7d7569),neon:new THREE.MeshStandardMaterial({color:0x57dcff,emissive:0x168ab3,emissiveIntensity:1.4})};
@@ -271,6 +271,17 @@ function loadGame(){
  }catch(e){try{localStorage.removeItem(SAVE_KEY);}catch(ignore){}}
 }
 const jobs=[new THREE.Vector3(60,0,60),new THREE.Vector3(-90,0,30),new THREE.Vector3(-60,0,-90),new THREE.Vector3(90,0,-90),new THREE.Vector3(120,0,60)];
+// Collectible city caches reward exploration between delivery jobs.
+const caches=[];
+for(let i=0;i<12;i++){
+ const x=(Math.floor(rand()*9)-4)*30+(rand()-.5)*12;
+ const z=(Math.floor(rand()*9)-4)*30+(rand()-.5)*12;
+ if(blocked(x,z,2)||Math.hypot(x,z)<20)continue;
+ const g=new THREE.Group();g.position.set(x,0,z);scene.add(g);
+ const ring=new THREE.Mesh(new THREE.TorusGeometry(.72,.12,7,20),mats.glow);ring.rotation.x=Math.PI/2;ring.position.y=.45;g.add(ring);
+ const core=new THREE.Mesh(new THREE.OctahedronGeometry(.42,0),mats.glow);core.position.y=1.05;g.add(core);
+ caches.push({group:g,ring:ring,core:core,active:true});
+}
 const marker=new THREE.Group();scene.add(marker);
 const ring=new THREE.Mesh(new THREE.TorusGeometry(2, .18, 8, 28),mats.glow);ring.rotation.x=Math.PI/2;ring.position.y=.22;marker.add(ring);
 const beam=new THREE.Mesh(new THREE.CylinderGeometry(.08,.6,3,12,1,true),new THREE.MeshBasicMaterial({color:0xc7ff6b,transparent:true,opacity:.22,side:THREE.DoubleSide}));beam.position.y=1.8;marker.add(beam);
@@ -329,7 +340,15 @@ function drawMap(){
 let mapTimer=0;
 function animate(){
  requestAnimationFrame(animate);const dt=Math.min(clock.getDelta(),.04);const t=clock.elapsedTime;
+ // A gradual full-day cycle changes sky, fog, sun and window glow without heavy post-processing.
+ const day=(Math.sin(t*.018-Math.PI/2)+1)/2;
+ const night=1-day;
+ scene.background.setRGB(.035+day*.53,.065+day*.61,.12+day*.66);
+ scene.fog.color.copy(scene.background);scene.fog.near=125+day*20;scene.fog.far=330+day*70;
+ sun.intensity=.22+day*2.6;sun.color.setRGB(1,.58+day*.3,.42+day*.28);skyLight.intensity=.48+day*1.2;
+ mats.window.emissive.setHex(0xffbd63);mats.window.emissiveIntensity=night*.95;
  marker.children[0].rotation.z+=dt*1.4;marker.children[1].position.y=1.8+Math.sin(t*2)*.25;
+ for(const cache of caches)if(cache.active){cache.ring.rotation.z+=dt*.8;cache.core.rotation.y+=dt*1.2;cache.core.position.y=1.05+Math.sin(t*2+cache.group.position.x)*.15;}
  if(started&&!paused){
   // Pedestrians stroll along sidewalks and turn around at district edges.
   for(const npc of pedestrians){
@@ -370,6 +389,25 @@ function animate(){
   const behind=inCar?10:7.5,up=inCar?5.3:4.4;
   const desired=new THREE.Vector3(actor.position.x-Math.sin(actor.rotation.y)*behind,up,actor.position.z-Math.cos(actor.rotation.y)*behind);
   camera.position.lerp(desired,1-Math.pow(.001,dt));camTarget.set(actor.position.x,actor.position.y+(inCar?1.2:1.3),actor.position.z);camera.lookAt(camTarget);
+  for(const cache of caches){if(cache.active&&actor.position.distanceTo(cache.group.position)<2.5){cache.active=false;cache.group.visible=false;cash+=75;document.getElementById('cash').textContent='
+   cash+=250;deliveries++;missionIndex++;
+   document.getElementById('cash').textContent='$'+cash.toLocaleString();
+   document.getElementById('deliveries').textContent=deliveries;
+   setJob();saveGame();showToast('DELIVERY COMPLETE +$250');
+  }
+  document.getElementById('speedNum').textContent=Math.round(Math.abs(speed)*3.6);
+  if(trafficToastCooldown>0)trafficToastCooldown-=dt;
+  if(toastTimer>0){toastTimer-=dt;if(toastTimer<=0)document.getElementById('toast').style.opacity=0;}
+  mapTimer+=dt;if(mapTimer>.15){drawMap();mapTimer=0;}
+ }
+ renderer.render(scene,camera);
+}
+camera.position.set(0,8,22);camera.lookAt(0,0,0);animate();
+window.__openCityReady=true;
+addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio,1.45));});
+</script>
+</body>
+</html>+cash.toLocaleString();saveGame();showToast('CITY CACHE FOUND +$75');}}
   const dist=actor.position.distanceTo(marker.position);
   if(dist<3.2){
    cash+=250;deliveries++;missionIndex++;
