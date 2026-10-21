@@ -25,7 +25,9 @@ The browser version loads Three.js from jsDelivr, so an internet connection is r
 - Courier destinations, cash rewards and delivery counter
 - Minimap, speed HUD and mobile touch controls
 - Keyboard pause/resume with **P**
-- Local progress saving for deliveries, cash, shop inventory and collected city caches
+- Manual **SAVE GAME** button plus automatic saves every 15 seconds and when leaving the page
+- Save/load restores cash, deliveries, mission progress, shop inventory, collected caches, player position and vehicle position
+- Existing version-1 local saves are migrated by loading them into the expanded save format
 
 ## Controls
 
