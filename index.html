@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>GTA — Open City 3D</title>
+<title>SALARX Open City 3D</title>
 <meta name="description" content="SALARX Open City 3D is an original browser-based open-city driving and exploration prototype with pedestrians, traffic and courier jobs.">
 <style>
 :root{color-scheme:dark;--cyan:#62e9ff;--lime:#c7ff6b;--panel:rgba(8,15,22,.82)}
@@ -33,7 +33,7 @@ button{font:inherit;cursor:pointer}#play{width:100%;padding:15px;background:var(
   <div class="start-card">
     <div class="kicker">SALARX STUDIOS • BROWSER GAME</div>
     <div class="logo">OPEN CITY<br><span>3D</span></div>
-    <p class="desc">An original 3D open-world city with wandering pedestrians, moving street traffic, pastel sunset skies, sports-car driving and courier jobs.</p>
+    <p class="desc">Explore an original open-world city with 64 pedestrians, traffic, conversations, shops, spending, courier jobs and target practice.</p>
     <div class="features"><span class="pill">3D CITY</span><span class="pill">PEDESTRIANS</span><span class="pill">MOVING TRAFFIC</span><span class="pill">COURIER JOBS</span></div>
     <button id="play">ENTER THE CITY ↗</button>
     <div class="fine">Original open-city prototype with procedural characters and vehicles. Requires internet to load the 3D engine. Press P to pause/resume; progress saves locally after deliveries.</div>
@@ -268,6 +268,8 @@ let started=false,paused=false,trafficToastCooldown=0;
 document.getElementById('play').addEventListener('click',()=>{started=true;document.getElementById('start').style.display='none';document.getElementById('hud').style.display='block';showToast('WELCOME TO OPEN CITY');});
 const clock=new THREE.Clock();let speed=0,heading=0;
 loadGame();
+if(inventory.weapons.length)weaponProp.visible=true;
+if(inventory.paint>0)carPaint();
 setJob();
 const v=new THREE.Vector3(),camTarget=new THREE.Vector3();
 function blocked(x,z,r=1){return obstacles.some(o=>Math.abs(x-o.x)<o.rx+r&&Math.abs(z-o.z)<o.rz+r);}
