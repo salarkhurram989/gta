@@ -221,7 +221,7 @@ function loadGame(){
    cash=Math.max(0,Math.floor(Number(data.cash)||0));
    deliveries=Math.max(0,Math.floor(Number(data.deliveries)||0));
    missionIndex=Math.max(0,Math.floor(Number(data.missionIndex)||0));
-   inventory=data.inventory&&typeof data.inventory==='object'?data.inventory:{meals:0,outfits:0,paint:0,arcadeTokens:0};
+   inventory={meals:Math.max(0,Number(data.inventory&&data.inventory.meals)||0),outfits:Math.max(0,Number(data.inventory&&data.inventory.outfits)||0),paint:Math.max(0,Number(data.inventory&&data.inventory.paint)||0),arcadeTokens:Math.max(0,Number(data.inventory&&data.inventory.arcadeTokens)||0)};
    document.getElementById('cash').textContent='$'+cash.toLocaleString();
    document.getElementById('deliveries').textContent=deliveries;
   }
