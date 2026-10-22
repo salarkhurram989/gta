@@ -47,6 +47,7 @@ button{font:inherit;cursor:pointer}#play{width:100%;padding:15px;background:var(
 <div id="hud">
   <button id="customizeBtn">✦ CUSTOMIZE</button><button id="mapBtn">▦ FULL MAP</button><button id="mapClose">CLOSE MAP ✕</button>
   <div id="customPanel" class="panel"><h3>PLAYER & WORLD SETUP</h3>
+  <div class="customRow"><label>Vehicle style</label><select id="vehicleSelect"><option value="sport">Street sport</option><option value="suv">City SUV</option><option value="compact">Compact</option></select></div>
   <div class="customRow"><label>Car paint</label><div id="carSwatches" class="swatches"></div></div>
   <div class="customRow"><label>Outfit colour</label><div id="shirtSwatches" class="swatches"></div></div>
   <div class="customRow"><label>Camera distance <span id="cameraValue">10</span></label><input id="cameraRange" type="range" min="6" max="16" value="10"></div>
@@ -267,7 +268,7 @@ function makePlayer(){
 const player=makePlayer();player.position.set(2,0,12);
 
 let inCar=false,keys={},cash=0,deliveries=0,missionIndex=0,toastTimer=0;
-const customization={car:0x19b7d4,shirt:0xe4e9ed,camera:10,mapSize:230,quality:'medium',ambience:'cycle'};
+const customization={car:0x19b7d4,shirt:0xe4e9ed,camera:10,mapSize:230,vehicle:'sport',quality:'medium',ambience:'cycle'};
 const carColors=[['Ocean cyan',0x19b7d4],['Racing red',0xd94f4f],['Sunset gold',0xf0bd45],['Emerald',0x64b57b],['Midnight blue',0x334b88],['Pearl white',0xf1eee5],['Graphite',0x343c45],['Hot orange',0xf07838]];
 const shirtColors=[['Ice',0xe4e9ed],['Crimson',0xc94d55],['Lime',0xb7e85c],['Sky',0x4b9dbd],['Black',0x252a30],['Sand',0xc7a77b],['Teal',0x38a99c]];
 let inventory={meals:0,outfits:0,paint:0,arcadeTokens:0},activePanel=null,currentInterior=null;
@@ -318,14 +319,15 @@ function enterInterior(record){if(!record.interior){showToast('THIS BUILDING IS 
 function exitInterior(){if(!currentInterior)return;const room=currentInterior;room.interior.visible=false;room.exterior.visible=true;currentInterior=null;player.position.set(room.doorX+Math.sign(room.doorX-room.x)*.7,0,room.doorZ+Math.sign(room.doorZ-room.z)*.7);if(Math.hypot(player.position.x-room.x,player.position.z-room.z)<1){player.position.set(room.x,0,room.z+(room.d?room.d/2+2:7));}document.getElementById('mode').textContent='ON FOOT';document.getElementById('prompt').innerHTML='Move <span class="key">W A S D</span> · Sprint <span class="key">SHIFT</span> · Enter car <span class="key">E</span>';showToast('EXITED BUILDING');}
 function openShop(shop){activePanel='shop';document.getElementById('dialoguePanel').style.display='none';document.getElementById('shopPanel').style.display='block';document.getElementById('shopTitle').textContent=shop.kind;document.getElementById('shopDescription').textContent=shop.description+' Cash: $'+cash.toLocaleString();const box=document.getElementById('shopOptions');box.innerHTML='';catalog[shop.kind].forEach(item=>{const b=document.createElement('button');b.textContent=item.name+' — $'+item.price;b.addEventListener('click',()=>buyItem(item));box.appendChild(b);});}
 function buyItem(item){if(cash<item.price){showToast('NOT ENOUGH CASH');return;}cash-=item.price;if(item.id==='tokens'){inventory.arcadeTokens+=5;showToast('5 ARCADE TOKENS ADDED');}else if(item.id==='meal'){inventory.meals++;showToast('MEAL PURCHASED');}else if(item.id==='outfit'){inventory.outfits++;showToast('NEW OUTFIT PURCHASED');}else if(item.id==='paint'){inventory.paint++;carPaint();showToast('CAR PAINT UPDATED');}document.getElementById('cash').textContent='$'+cash.toLocaleString();saveGame();openShop(shops.find(sh=>sh.kind===document.getElementById('shopTitle').textContent)||shops[0]);}
+function applyVehicleModel(){const models={sport:{scale:1,max:38,label:'SPORTS COUPE'},suv:{scale:1.13,max:30,label:'CITY SUV'},compact:{scale:.88,max:34,label:'COMPACT'}};const model=models[customization.vehicle]||models.sport;car.scale.setScalar(model.scale);document.getElementById('vehicleSelect').value=customization.vehicle;return model;}
 function carPaint(){const color=customization.car;car.traverse(o=>{if(o.isMesh&&(o.material===mats.car||o.userData.paintable)){o.userData.paintable=true;o.material=mat(color,.28,.35);}});}
 function playerShirt(){player.traverse(o=>{if(o.isMesh&&o.userData.playerShirt)o.material.color.setHex(customization.shirt);});}
 function applyQuality(){const q=customization.quality;renderer.setPixelRatio(Math.min(devicePixelRatio,q==='low'?.75:q==='medium'?1.15:1.65));renderer.shadowMap.enabled=q!=='low';renderer.shadowMap.autoUpdate=q==='high';sun.castShadow=q!=='low';pedestrians.forEach((npc,i)=>{npc.group.visible=q!=='low'||i%2===0;});traffic.forEach((v,i)=>{v.group.visible=q!=='low'||i%2===0;});}
 function saveCustomization(){try{localStorage.setItem(CUSTOM_KEY,JSON.stringify(customization));}catch(e){}}
-function loadCustomization(){try{const d=JSON.parse(localStorage.getItem(CUSTOM_KEY)||'null');if(d){if(carColors.some(c=>c[1]===d.car))customization.car=d.car;if(shirtColors.some(c=>c[1]===d.shirt))customization.shirt=d.shirt;if(Number.isFinite(d.camera))customization.camera=THREE.MathUtils.clamp(d.camera,6,16);if(Number.isFinite(d.mapSize))customization.mapSize=THREE.MathUtils.clamp(d.mapSize,150,320);if(['low','medium','high'].includes(d.quality))customization.quality=d.quality;if(['cycle','day','night'].includes(d.ambience))customization.ambience=d.ambience;}}catch(e){}}
+function loadCustomization(){try{const d=JSON.parse(localStorage.getItem(CUSTOM_KEY)||'null');if(d){if(carColors.some(c=>c[1]===d.car))customization.car=d.car;if(shirtColors.some(c=>c[1]===d.shirt))customization.shirt=d.shirt;if(Number.isFinite(d.camera))customization.camera=THREE.MathUtils.clamp(d.camera,6,16);if(Number.isFinite(d.mapSize))customization.mapSize=THREE.MathUtils.clamp(d.mapSize,150,320);if(['sport','suv','compact'].includes(d.vehicle))customization.vehicle=d.vehicle;if(['low','medium','high'].includes(d.quality))customization.quality=d.quality;if(['cycle','day','night'].includes(d.ambience))customization.ambience=d.ambience;}}catch(e){}}
 function buildSwatches(id,items,property){const box=document.getElementById(id);box.innerHTML='';items.forEach(([name,color])=>{const b=document.createElement('button');b.className='swatch';b.title=name;b.setAttribute('aria-label',name);b.style.background='#'+color.toString(16).padStart(6,'0');b.addEventListener('click',()=>{customization[property]=color;refreshSwatches();if(property==='car')carPaint();else playerShirt();saveCustomization();showToast(name.toUpperCase()+' SELECTED');});box.appendChild(b);});}
 function refreshSwatches(){document.querySelectorAll('#carSwatches .swatch').forEach((b,i)=>b.classList.toggle('selected',carColors[i][1]===customization.car));document.querySelectorAll('#shirtSwatches .swatch').forEach((b,i)=>b.classList.toggle('selected',shirtColors[i][1]===customization.shirt));}
-function openCustomization(){activePanel='custom';document.getElementById('customPanel').style.display='block';document.getElementById('shopPanel').style.display='none';document.getElementById('dialoguePanel').style.display='none';document.getElementById('cameraRange').value=customization.camera;document.getElementById('cameraValue').textContent=customization.camera;document.getElementById('qualitySelect').value=customization.quality;document.getElementById('ambienceSelect').value=customization.ambience;}
+function openCustomization(){activePanel='custom';document.getElementById('customPanel').style.display='block';document.getElementById('shopPanel').style.display='none';document.getElementById('dialoguePanel').style.display='none';document.getElementById('cameraRange').value=customization.camera;document.getElementById('cameraValue').textContent=customization.camera;document.getElementById('qualitySelect').value=customization.quality;document.getElementById('ambienceSelect').value=customization.ambience;document.getElementById('vehicleSelect').value=customization.vehicle;}
 function closeCustomization(){document.getElementById('customPanel').style.display='none';activePanel=null;}
 function interact(){if(activePanel){closePanels();return;}if(currentInterior){if(catalog[currentInterior.kind])openShop(currentInterior);else showToast('LOOK AROUND · PRESS E TO EXIT');return;}if(inCar){showToast('EXIT THE CAR TO INTERACT');return;}const p=player.position;let nearestShop=null,shopDist=1e9;shops.forEach(sh=>{const d=Math.hypot(p.x-sh.doorX,p.z-sh.doorZ);if(d<shopDist){shopDist=d;nearestShop=sh;}});if(nearestShop&&shopDist<3.8){enterInterior(nearestShop);return;}let nearestBuilding=null,buildingDist=1e9;explorableBuildings.forEach(b=>{const d=Math.hypot(p.x-b.doorX,p.z-b.doorZ);if(d<buildingDist){buildingDist=d;nearestBuilding=b;}});if(nearestBuilding&&buildingDist<3.8){enterInterior(nearestBuilding);return;}let nearestNpc=null,npcDist=1e9;pedestrians.forEach(npc=>{const d=p.distanceTo(npc.group.position);if(d<npcDist){npcDist=d;nearestNpc=npc;}});if(nearestNpc&&npcDist<3.5){activePanel='dialogue';document.getElementById('shopPanel').style.display='none';document.getElementById('dialoguePanel').style.display='block';document.getElementById('dialogueName').textContent=nearestNpc.name+' · LOCAL';document.getElementById('dialogueText').textContent=nearestNpc.dialogue;}else showToast('FIND A DOOR OR A PERSON NEARBY');}
 
@@ -347,7 +349,8 @@ document.getElementById('mapBtn').addEventListener('click',()=>toggleFullMap());
 document.getElementById('mapSizeRange').addEventListener('input',e=>{customization.mapSize=Number(e.target.value);applyMapSize();saveCustomization();});
 document.getElementById('qualitySelect').addEventListener('change',e=>{customization.quality=e.target.value;applyQuality();saveCustomization();showToast('GRAPHICS: '+customization.quality.toUpperCase());});
 document.getElementById('ambienceSelect').addEventListener('change',e=>{customization.ambience=e.target.value;saveCustomization();showToast('WORLD AMBIENCE UPDATED');});
-document.getElementById('resetCustom').addEventListener('click',()=>{customization.car=carColors[0][1];customization.shirt=shirtColors[0][1];customization.camera=10;customization.mapSize=230;customization.quality='medium';customization.ambience='cycle';openCustomization();applyMapSize();carPaint();playerShirt();applyQuality();saveCustomization();refreshSwatches();showToast('CUSTOM LOOK RESET');});
+document.getElementById('vehicleSelect').addEventListener('change',e=>{customization.vehicle=e.target.value;applyVehicleModel();saveCustomization();showToast('VEHICLE STYLE: '+customization.vehicle.toUpperCase());});
+document.getElementById('resetCustom').addEventListener('click',()=>{customization.car=carColors[0][1];customization.shirt=shirtColors[0][1];customization.camera=10;customization.mapSize=230;customization.vehicle='sport';customization.quality='medium';customization.ambience='cycle';openCustomization();applyMapSize();carPaint();playerShirt();applyVehicleModel();applyQuality();saveCustomization();refreshSwatches();showToast('CUSTOM LOOK RESET');});
 buildSwatches('carSwatches',carColors,'car');buildSwatches('shirtSwatches',shirtColors,'shirt');
 function toggleCar(){
  if(!started)return;
@@ -362,7 +365,7 @@ let started=false,paused=false,trafficToastCooldown=0;
 document.getElementById('play').addEventListener('click',()=>{started=true;document.getElementById('start').style.display='none';document.getElementById('hud').style.display='block';showToast('WELCOME TO OPEN CITY');});
 const clock=new THREE.Clock();let speed=0,heading=0;
 loadGame();
-loadCustomization();carPaint();playerShirt();applyQuality();refreshSwatches();applyMapSize();
+loadCustomization();carPaint();playerShirt();applyVehicleModel();applyQuality();refreshSwatches();applyMapSize();
 setJob();
 const v=new THREE.Vector3(),camTarget=new THREE.Vector3();
 function blocked(x,z,r=1){return obstacles.some(o=>Math.abs(x-o.x)<o.rx+r&&Math.abs(z-o.z)<o.rz+r);}
@@ -410,10 +413,10 @@ function animate(){
    if(nearPlayer<3.2&&inCar&&Math.abs(speed)>8){speed*=.78;if(trafficToastCooldown<=0){showToast('TRAFFIC! DRIVE CAREFULLY');trafficToastCooldown=1.5;}}
   }
   if(inCar){
-   const accel=keys.w?19:keys.s?-13:0;
+   const model=applyVehicleModel();const accel=keys.w?19:keys.s?-13:0;
    speed+=accel*dt;
    speed*=keys[' ']?Math.pow(.035,dt):Math.pow(.34,dt);
-   speed=THREE.MathUtils.clamp(speed,-12,38);
+   speed=THREE.MathUtils.clamp(speed,-12,model.max);
    if(Math.abs(speed)>.4)car.rotation.y+=((keys.a?1:0)-(keys.d?1:0))*dt*(.9+Math.abs(speed)*.025)*Math.sign(speed);
    const nx=car.position.x+Math.sin(car.rotation.y)*speed*dt,nz=car.position.z+Math.cos(car.rotation.y)*speed*dt;
    if(!blocked(nx,nz,1.5)&&Math.abs(nx)<220&&Math.abs(nz)<220){car.position.x=nx;car.position.z=nz;}else{speed*=-.18;showToast('OBSTACLE');}
