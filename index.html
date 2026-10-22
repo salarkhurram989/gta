@@ -305,7 +305,8 @@ for(let i=0;i<12;i++){
 const marker=new THREE.Group();scene.add(marker);
 const ring=new THREE.Mesh(new THREE.TorusGeometry(2, .18, 8, 28),mats.glow);ring.rotation.x=Math.PI/2;ring.position.y=.22;marker.add(ring);
 const beam=new THREE.Mesh(new THREE.CylinderGeometry(.08,.6,3,12,1,true),new THREE.MeshBasicMaterial({color:0xc7ff6b,transparent:true,opacity:.22,side:THREE.DoubleSide}));beam.position.y=1.8;marker.add(beam);
-function setJob(){marker.position.copy(jobs[missionIndex%jobs.length]);document.getElementById('missionText').textContent='Pick up the glowing courier package.';document.getElementById('missionSub').textContent='Destination '+(missionIndex+1)+' / '+jobs.length+' · Go to the green marker';}
+const missionTypes=[{title:'Courier run: collect and deliver a package.',detail:'A reliable route pays $250. Follow the green marker.',reward:250},{title:'Food run: bring a meal across town.',detail:'Rush-hour bonus job · reward $325.',reward:325},{title:'City survey: visit the marked district.',detail:'Explore the city and report back · reward $200.',reward:200},{title:'Express delivery: take the long route.',detail:'Keep moving and earn $400 on completion.',reward:400},{title:'Neighbourhood supply run.',detail:'A local shop needs supplies · reward $300.',reward:300}];
+function setJob(){marker.position.copy(jobs[missionIndex%jobs.length]);const job=missionTypes[missionIndex%missionTypes.length];document.getElementById('missionText').textContent=job.title;document.getElementById('missionSub').textContent=job.detail+' Job '+(missionIndex+1);}
 setJob();
 function showToast(s){const t=document.getElementById('toast');t.textContent=s;t.style.opacity=1;toastTimer=2.3;}
 const catalog={
@@ -434,10 +435,44 @@ function animate(){
   for(const cache of caches){if(cache.active&&actor.position.distanceTo(cache.group.position)<2.5){cache.active=false;cache.group.visible=false;cash+=75;document.getElementById('cash').textContent='$'+cash.toLocaleString();saveGame();showToast('CITY CACHE FOUND +$75');}}
   const dist=actor.position.distanceTo(marker.position);
   if(dist<3.2){
+   const payout=missionTypes[missionIndex%missionTypes.length].reward;cash+=payout;deliveries++;missionIndex++;
+   document.getElementById('cash').textContent='$'+cash.toLocaleString();
+   document.getElementById('deliveries').textContent=deliveries;
+   setJob();saveGame();showToast('JOB COMPLETE +
+  }
+  document.getElementById('speedNum').textContent=Math.round(Math.abs(speed)*3.6);
+  if(trafficToastCooldown>0)trafficToastCooldown-=dt;
+  if(toastTimer>0){toastTimer-=dt;if(toastTimer<=0)document.getElementById('toast').style.opacity=0;}
+  mapTimer+=dt;if(mapTimer>.15){drawMap();mapTimer=0;}
+ }
+ renderer.render(scene,camera);
+}
+camera.position.set(0,8,22);camera.lookAt(0,0,0);animate();
+window.__openCityReady=true;
+addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio,1.45));});
+</script>
+</body>
+</html>+cash.toLocaleString();saveGame();showToast('CITY CACHE FOUND +$75');}}
+  const dist=actor.position.distanceTo(marker.position);
+  if(dist<3.2){
    cash+=250;deliveries++;missionIndex++;
    document.getElementById('cash').textContent='$'+cash.toLocaleString();
    document.getElementById('deliveries').textContent=deliveries;
    setJob();saveGame();showToast('DELIVERY COMPLETE +$250');
+  }
+  document.getElementById('speedNum').textContent=Math.round(Math.abs(speed)*3.6);
+  if(trafficToastCooldown>0)trafficToastCooldown-=dt;
+  if(toastTimer>0){toastTimer-=dt;if(toastTimer<=0)document.getElementById('toast').style.opacity=0;}
+  mapTimer+=dt;if(mapTimer>.15){drawMap();mapTimer=0;}
+ }
+ renderer.render(scene,camera);
+}
+camera.position.set(0,8,22);camera.lookAt(0,0,0);animate();
+window.__openCityReady=true;
+addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio,1.45));});
+</script>
+</body>
+</html>+payout);
   }
   document.getElementById('speedNum').textContent=Math.round(Math.abs(speed)*3.6);
   if(trafficToastCooldown>0)trafficToastCooldown-=dt;
